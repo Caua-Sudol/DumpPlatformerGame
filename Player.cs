@@ -1,6 +1,7 @@
 using System.Dynamic;
 using System.IO.Pipelines;
 using System.Linq;
+using System.Xml;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -22,6 +23,7 @@ public class Player
     private int _heightPlayer;
 
     public Vector2 _velocity { get; private set;}
+    public Vector2 _maxVelocity { get; private set;}
     public float _acc { get; private set;}
     public float _gravity { get; private set;}
     public bool _isGrounded {get; private set;} = false;
@@ -31,10 +33,11 @@ public class Player
     private Texture2D _texture;
     private Color[] _color;
 
-    public Player(int x, int y, Vector2 velocity, float gravity, int width, int height)
+    public Player(int x, int y, float gravity, int width, int height)
     {
         _player = new Vector2(x, y);
-        _velocity = velocity;
+        _velocity = new Vector2();
+        _maxVelocity = new Vector2(10f, 10f);
         _acc = 2.5f;
         _gravity = gravity;
         _widthPlayer = width;
@@ -101,12 +104,12 @@ public class Player
             }
             if (state.IsKeyDown(Keys.D))
             {
-                velX += _acc;
+                velX += _acc * _maxVelocity.X;
                 _direction = Direction.Rigth;
             }
             if (state.IsKeyDown(Keys.A))
             {
-                velX -= _acc;
+                velX -= _acc * _maxVelocity.X;
                 _direction = Direction.Left;
             }
             if(_isGrounded == false)

@@ -22,7 +22,7 @@ public class Scene
     private const int PlayerStartY = 552;
     private const int PlayerWidth = 16;
     private const int PlayerHeight = 16;
-    private Vector2 PlayerVelocity = new Vector2(10.0f, 10.0f); // Não vai ser const, velocidade vai ficar variando
+    // private Vector2 PlayerVelocity = new Vector2(10.0f, 10.0f); // Não vai ser const, velocidade vai ficar variando
     private const float PlayerGravity = -0.5f; //-9.81f
 
     private List<Rectangle> _platform = new List<Rectangle>();
@@ -57,7 +57,7 @@ public class Scene
         fadeTexture = new Texture2D(graphicsDevice, 1920, 1080);
         fadeTexture.SetData(_fadeColor);        
 
-        _player = new Player(PlayerStartX, PlayerStartY, PlayerVelocity, PlayerGravity, PlayerWidth, PlayerHeight);
+        _player = new Player(PlayerStartX, PlayerStartY, PlayerGravity, PlayerWidth, PlayerHeight);
         _player.LoadContent(graphicsDevice, PlayerWidth, PlayerHeight);
 
         var map = new TmxMap("Content/SimpleCutsceneMap.tmx");
@@ -150,7 +150,7 @@ public class Scene
                 if(_player._velocity.Y > 0)
                 {
                     tempPlayer.Y = plat.Top - _player.HitBox.Height;
-                    _player.StopFalling(PlayerVelocity.X);
+                    _player.StopFalling(_player._maxVelocity.X);
                 }
                 else if(_player._velocity.Y < 0)
                 {
