@@ -79,11 +79,11 @@ public class Scene
         SecondsPerFrame = 1.0 / 60.0;
     }
 
-    public void Update(Camera camera)
+    public void Update(Camera camera, float deltaTime)
     {
         if (GameMode == GameMode.PLAYING)
         {
-            _player.Update();
+            _player.Update(deltaTime);
 
             if (PlayerTouchedObj(_triggerColision[0]))
             {
@@ -147,10 +147,10 @@ public class Scene
             {
                 var tempPlayer = _player.Position;
                 
-                if(_player._velocity.Y > 0)
+                if (_player._velocity.Y > 0)
                 {
                     tempPlayer.Y = plat.Top - _player.HitBox.Height;
-                    _player.StopFalling(_player._maxVelocity.X);
+                    _player.StopFalling(); // Pode ser retirado
                 }
                 else if(_player._velocity.Y < 0)
                 {

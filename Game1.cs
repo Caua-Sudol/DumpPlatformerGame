@@ -68,6 +68,8 @@ public class Game1 : Game
 
     protected override void Update(GameTime gameTime)
     {
+        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
@@ -76,7 +78,7 @@ public class Game1 : Game
 
         if(_activeScreen == CurrentScreen.PLAYING)
         {
-            _scene.Update(_camera);
+            _scene.Update(_camera, deltaTime);
         }
         if(_activeScreen == CurrentScreen.START_MENU)
         {

@@ -26,7 +26,6 @@ public class Player
     public Vector2 _maxVelocity { get; private set;}
     public float _acc { get; private set;}
     public float _gravity { get; private set;}
-    public float dt { get; private set;}
     public bool _isGrounded {get; private set;} = false;
     public Direction _direction {get; private set;} = Direction.Rigth;
     public bool isBreath {get; private set;} = true;
@@ -38,9 +37,8 @@ public class Player
     {
         _player = new Vector2(x, y);
         _velocity = new Vector2();
-        _maxVelocity = new Vector2(10f, 10f);
-        _acc = 2.5f;
-        dt = 0.85f;
+        _maxVelocity = new Vector2(8.8f, 10f);
+        _acc = 5.0f;
         _gravity = gravity;
         _widthPlayer = width;
         _heightPlayer = height;
@@ -72,7 +70,7 @@ public class Player
         }
     }
 
-    public void Update()
+    public void Update(float deltaTime)
     {
         var velX = _velocity.X; 
         var velY = _velocity.Y;
@@ -96,8 +94,12 @@ public class Player
         { 
             if (state.IsKeyDown(Keys.Space) && _isGrounded)
             {
-                velY = -10f;
+                velY = -_maxVelocity.Y;
                 _isGrounded = false;
+            }
+            if(state.IsKeyUp(Keys.Space) && velY < 0)
+            {
+                velY *= 0.5f;;
             }
             if (state.IsKeyDown(Keys.LeftShift) && isBreath)
             {
@@ -106,17 +108,25 @@ public class Player
             }
             if (state.IsKeyDown(Keys.D))
             {
-                velX += _acc * _maxVelocity.X * dt;
+                velX += _acc * _maxVelocity.X * deltaTime;
                 _direction = Direction.Rigth;
             }
             else if (state.IsKeyDown(Keys.A))
             {
-                velX += _acc * -_maxVelocity.X * dt;
+                velX += _acc * -_maxVelocity.X * deltaTime;
                 _direction = Direction.Left;
             }
             else
             {
-                velX = 0;
+                if (_isGrounded)
+                {
+                    velX *= 0.80f;
+
+                    if (velX <= 0.1f && velX >= -0.1f)
+                    {
+                        velX = 0;
+                    }
+                }
             }
             if(_isGrounded == false)
             {
@@ -156,16 +166,17 @@ public class Player
     }
     public void StopWalkX()
     {
-        _player.X += 0;
-    }
-    public void StopWalkY()
-    {
-        _player.Y += 0;
+        _velocity = new Vector2(0, _velocity.Y);
     }
 
-    public void StopFalling(float velocityX)
+    public void StopWalkY()
     {
-        _velocity = new Vector2(velocityX, 0);
+        _velocity = new Vector2(_velocity.X, 0);
+    }
+
+    public void StopFalling()
+    {
+        _velocity = new Vector2(_velocity.X, 0);
     }
 
     public void Grounded()
