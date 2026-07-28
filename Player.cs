@@ -26,6 +26,7 @@ public class Player
     public Vector2 _maxVelocity { get; private set;}
     public float _acc { get; private set;}
     public float _gravity { get; private set;}
+    public float dt { get; private set;}
     public bool _isGrounded {get; private set;} = false;
     public Direction _direction {get; private set;} = Direction.Rigth;
     public bool isBreath {get; private set;} = true;
@@ -39,6 +40,7 @@ public class Player
         _velocity = new Vector2();
         _maxVelocity = new Vector2(10f, 10f);
         _acc = 2.5f;
+        dt = 0.85f;
         _gravity = gravity;
         _widthPlayer = width;
         _heightPlayer = height;
@@ -72,7 +74,7 @@ public class Player
 
     public void Update()
     {
-        var velX = 0f; 
+        var velX = _velocity.X; 
         var velY = _velocity.Y;
         var state = Keyboard.GetState();
 
@@ -104,18 +106,30 @@ public class Player
             }
             if (state.IsKeyDown(Keys.D))
             {
-                velX += _acc * _maxVelocity.X;
+                velX += _acc * _maxVelocity.X * dt;
                 _direction = Direction.Rigth;
             }
-            if (state.IsKeyDown(Keys.A))
+            else if (state.IsKeyDown(Keys.A))
             {
-                velX -= _acc * _maxVelocity.X;
+                velX += _acc * -_maxVelocity.X * dt;
                 _direction = Direction.Left;
+            }
+            else
+            {
+                velX = 0;
             }
             if(_isGrounded == false)
             {
                 velY -= _gravity;   
             }
+        }
+        if(velX >= _maxVelocity.X)
+        {
+            velX = _maxVelocity.X;
+        }
+        else if (velX <= -_maxVelocity.X)
+        {
+            velX = -_maxVelocity.X;
         }
         _velocity = new Vector2(velX, velY);
     }
