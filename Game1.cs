@@ -63,12 +63,12 @@ public class Game1 : Game
         _scene.LoadContent(GraphicsDevice);
         _startMenu.LoadContent(GraphicsDevice);
 
-        TargetElapsedTime = TimeSpan.FromSeconds(_scene.SecondsPerFrame);
+        TargetElapsedTime = TimeSpan.FromSeconds(_scene.FPS);
     }
 
     protected override void Update(GameTime gameTime)
     {
-        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        double deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
@@ -95,7 +95,7 @@ public class Game1 : Game
             }
         }
         
-        TargetElapsedTime = TimeSpan.FromSeconds(_scene.SecondsPerFrame);
+        TargetElapsedTime = TimeSpan.FromSeconds(_scene.FPS);
 
         base.Update(gameTime);
     }

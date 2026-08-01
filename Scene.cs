@@ -23,7 +23,9 @@ public class Scene
     private const int PlayerWidth = 16;
     private const int PlayerHeight = 16;
     // private Vector2 PlayerVelocity = new Vector2(10.0f, 10.0f); // Não vai ser const, velocidade vai ficar variando
-    private const float PlayerGravity = -0.5f; //-9.81f
+    private double PlayerGravity;
+    private double SecondsPerFramePlaying = 1.0 / 60.0f;
+    private double SecondsPerFrameCutscene = 1.0 / 5.0f;
 
     private List<Rectangle> _platform = new List<Rectangle>();
     private List<Rectangle> _triggerColision = new List<Rectangle>();
@@ -38,7 +40,7 @@ public class Scene
     private Player _player;
 
     public GameMode GameMode { get; private set; }
-    public double SecondsPerFrame { get; private set; }
+    public double FPS { get; private set; }
 
     public Player Player
     {
@@ -50,6 +52,9 @@ public class Scene
 
     public void LoadContent(GraphicsDevice graphicsDevice)
     {
+
+        PlayerGravity = -1800f;
+
         _fadeAlph = 0.0f;
 
         _fadeColor = Enumerable.Repeat(Color.White, 1920*1080).ToArray();
@@ -76,10 +81,10 @@ public class Scene
         }
 
         GameMode = GameMode.PLAYING;
-        SecondsPerFrame = 1.0 / 60.0;
+        FPS = SecondsPerFramePlaying;
     }
 
-    public void Update(Camera camera, float deltaTime)
+    public void Update(Camera camera, double deltaTime)
     {
         if (GameMode == GameMode.PLAYING)
         {
@@ -87,13 +92,13 @@ public class Scene
 
             if (PlayerTouchedObj(_triggerColision[0]))
             {
-                SecondsPerFrame = 1.0 / 5.0;
+                FPS = SecondsPerFrameCutscene;
                 GameMode = GameMode.FADE_OUT;
             }
         }
         else if (GameMode == GameMode.CUTSCENE)
         {
-            StartCutscene(camera);
+            StartCutscene(camera, deltaTime);
         }
         else if (GameMode == GameMode.FADE_OUT)
         {
@@ -118,7 +123,7 @@ public class Scene
                 GameMode = GameMode.CUTSCENE;
             }
         }
-        _player.WalkX(_player._velocity.X);
+        _player.WalkX(_player._velocity.X, deltaTime);
         foreach(var plat in _platform)
         {
             if(PlayerTouchedObj(plat))
@@ -139,7 +144,7 @@ public class Scene
         }
 
         _player.NotGrounded();
-        _player.WalkY(_player._velocity.Y);
+        _player.WalkY(_player._velocity.Y, deltaTime);
         
         foreach(var plat in _platform)
         {
@@ -169,6 +174,7 @@ public class Scene
             if(tempHit.Intersects(plat))
             {
                 _player.Grounded();
+                _player.CancelDash();
                 _player.MoreBreath();
                 break;
             }
@@ -180,18 +186,18 @@ public class Scene
         return _player.HitBox.Intersects(obj);
     }
 
-    private void StartCutscene(Camera camera)
+    private void StartCutscene(Camera camera, double deltaTime)
     {
         camera.Zoom = 2.0f;
-        UpdateCutscene(camera);
+        UpdateCutscene(camera, deltaTime);
     }
 
-    private void UpdateCutscene(Camera camera)
+    private void UpdateCutscene(Camera camera, double deltaTime)
     {
         camera.Update(_player);
         if(_player.Position.X <= 940)
         {
-            _player.Walk(10, 0);
+            _player.Walk(10, 0, deltaTime);
         }
         else
         {
@@ -202,7 +208,7 @@ public class Scene
     private void FinishCutscene(Camera camera)
     {
         GameMode = GameMode.PLAYING;
-        SecondsPerFrame = 1.0 / 60.0;
+        FPS = SecondsPerFramePlaying;
         camera.Zoom = 1.0f;
         _fadeAlph = 0.0f;
         _player.Move(PlayerStartX, PlayerStartY);
