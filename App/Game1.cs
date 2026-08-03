@@ -33,6 +33,8 @@ public enum DeathOption
 
 public class Game1 : Game
 {
+    private const double SecondsPerFrameMenu = 1.0 / 60.0;
+
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private int windowWidth = 1920;
@@ -98,7 +100,7 @@ public class Game1 : Game
         _scene.LoadContent(GraphicsDevice);
         _startMenu.LoadContent(GraphicsDevice);
 
-        TargetElapsedTime = TimeSpan.FromSeconds(_scene.FPS);
+        TargetElapsedTime = TimeSpan.FromSeconds(SecondsPerFrameMenu);
     }
 
     protected override void Update(GameTime gameTime)
@@ -120,7 +122,7 @@ public class Game1 : Game
 
         _previousKeyboardState = keyboardState;
         
-        TargetElapsedTime = TimeSpan.FromSeconds(_scene.FPS);
+        TargetElapsedTime = TimeSpan.FromSeconds(GetSecondsPerFrame());
 
         base.Update(gameTime);
     }
@@ -155,6 +157,16 @@ public class Game1 : Game
         {
             Exit();
         }
+    }
+
+    private double GetSecondsPerFrame()
+    {
+        if (_activeScreen == AppScreen.PLAYING && _overlayState == OverlayState.NONE)
+        {
+            return _scene.FPS;
+        }
+
+        return SecondsPerFrameMenu;
     }
 
     private void UpdatePlaying(KeyboardState keyboardState, double deltaTime)
