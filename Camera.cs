@@ -15,9 +15,15 @@ public class Camera
         this.Zoom = zoom;
     }
 
-    public void Update(Player player)
+    public void Follow(Player player)
     {
-        Position = new Vector2(player.HitBox.Center.X, player.HitBox.Center.Y);
+        var playerCenter = player.HitBox.Center;
+        LookAt(new Vector2(playerCenter.X, playerCenter.Y));
+    }
+
+    public void LookAt(Vector2 position)
+    {
+        Position = position;
     }
 
     public Matrix GetTransform()

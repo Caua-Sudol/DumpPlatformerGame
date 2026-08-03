@@ -120,8 +120,7 @@ public class Scene
     {
         _player.Update(deltaTime);
         UpdatePlayerPhysics(deltaTime);
-        camera.Zoom = 1.0f;
-        camera.Update(_player);
+        UpdatePlayingCamera(camera);
 
         if (PlayerTouchedCutsceneTrigger())
         {
@@ -303,8 +302,7 @@ public class Scene
 
     private void UpdateCutscene(Camera camera, double deltaTime)
     {
-        camera.Zoom = CutsceneCameraZoom;
-        camera.Update(_player);
+        UpdateCutsceneCamera(camera);
 
         if (_player.Position.X <= CutsceneEndX)
         {
@@ -314,6 +312,18 @@ public class Scene
         {
             FinishCutscene(camera);
         }
+    }
+
+    private void UpdatePlayingCamera(Camera camera)
+    {
+        camera.Zoom = 1.0f;
+        camera.Follow(_player);
+    }
+
+    private void UpdateCutsceneCamera(Camera camera)
+    {
+        camera.Zoom = CutsceneCameraZoom;
+        camera.Follow(_player);
     }
 
     private void FinishCutscene(Camera camera)
@@ -327,6 +337,12 @@ public class Scene
 
     public void Draw(SpriteBatch spriteBatch, Camera camera)
     {
+        DrawWorld(spriteBatch, camera);
+        DrawScreenEffects(spriteBatch);
+    }
+
+    private void DrawWorld(SpriteBatch spriteBatch, Camera camera)
+    {
         var cameraTransform = camera.GetTransform();
         spriteBatch.Begin(transformMatrix: cameraTransform);
 
@@ -337,11 +353,25 @@ public class Scene
             spriteBatch.Draw(_platformTexture, platform, Color.Purple);
         }
 
-        if (GameMode == GameMode.FADE_OUT || GameMode == GameMode.FADE_IN || GameMode == GameMode.CUTSCENE)
+        spriteBatch.End();
+    }
+
+    private void DrawScreenEffects(SpriteBatch spriteBatch)
+    {
+        if (!ShouldDrawFade())
         {
-            spriteBatch.Draw(_fadeTexture, _fadeRectangle, new Color(Color.Black, _fadeAlpha));
+            return;
         }
 
+        spriteBatch.Begin();
+        spriteBatch.Draw(_fadeTexture, _fadeRectangle, new Color(Color.Black, _fadeAlpha));
         spriteBatch.End();
+    }
+
+    private bool ShouldDrawFade()
+    {
+        return GameMode == GameMode.FADE_OUT
+            || GameMode == GameMode.FADE_IN
+            || GameMode == GameMode.CUTSCENE;
     }
 }
