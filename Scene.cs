@@ -100,7 +100,7 @@ public class Scene
     {
         if (GameMode == GameMode.PLAYING)
         {
-            UpdatePlaying(deltaTime);
+            UpdatePlaying(camera, deltaTime);
         }
         else if (GameMode == GameMode.FADE_OUT)
         {
@@ -116,10 +116,12 @@ public class Scene
         }
     }
 
-    private void UpdatePlaying(double deltaTime)
+    private void UpdatePlaying(Camera camera, double deltaTime)
     {
         _player.Update(deltaTime);
         UpdatePlayerPhysics(deltaTime);
+        camera.Zoom = 1.0f;
+        camera.Update(_player);
 
         if (PlayerTouchedCutsceneTrigger())
         {
