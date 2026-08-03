@@ -29,7 +29,7 @@ public class Player
     private int _widthPlayer;
     private int _heightPlayer;
 
-    public Vector2 _velocity { get; private set; }
+    private Vector2 _velocity;
     public Vector2 _maxVelocity { get; private set; }
     public double _gravity { get; private set; }
     public bool _isGrounded { get; private set; } = false;
@@ -74,6 +74,11 @@ public class Player
     {
         set { _player = value; }
         get { return _player; }
+    }
+
+    public Vector2 Velocity
+    {
+        get { return _velocity; }
     }
 
     public Rectangle HitBox

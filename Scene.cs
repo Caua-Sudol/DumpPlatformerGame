@@ -136,7 +136,7 @@ public class Scene
 
     private void MovePlayerX(double deltaTime)
     {
-        _player.WalkX(_player._velocity.X, deltaTime);
+        _player.WalkX(_player.Velocity.X, deltaTime);
 
         foreach (var platform in _platforms)
         {
@@ -152,11 +152,11 @@ public class Scene
     {
         var playerPosition = _player.Position;
 
-        if (_player._velocity.X > 0)
+        if (_player.Velocity.X > 0)
         {
             playerPosition.X = platform.Left - _player.HitBox.Width;
         }
-        else if (_player._velocity.X < 0)
+        else if (_player.Velocity.X < 0)
         {
             playerPosition.X = platform.Right;
         }
@@ -168,7 +168,7 @@ public class Scene
     private void MovePlayerY(double deltaTime)
     {
         _player.NotGrounded();
-        _player.WalkY(_player._velocity.Y, deltaTime);
+        _player.WalkY(_player.Velocity.Y, deltaTime);
 
         foreach (var platform in _platforms)
         {
@@ -184,11 +184,11 @@ public class Scene
     {
         var playerPosition = _player.Position;
 
-        if (_player._velocity.Y > 0)
+        if (_player.Velocity.Y > 0)
         {
             playerPosition.Y = platform.Top - _player.HitBox.Height;
         }
-        else if (_player._velocity.Y < 0)
+        else if (_player.Velocity.Y < 0)
         {
             playerPosition.Y = platform.Bottom;
         }
