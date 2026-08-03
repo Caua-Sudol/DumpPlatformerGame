@@ -73,9 +73,6 @@ public class Game1 : Game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
-        if(_scene.Player.Position.Y >= windowHeight)
-            Exit(); // ajustar para reiniciar a fase e não fechar o jogo
-
         if(_activeScreen == CurrentScreen.PLAYING)
         {
             _scene.Update(_camera, deltaTime);

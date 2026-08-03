@@ -28,6 +28,7 @@ public class Scene
     private const int ScreenWidth = 1920;
     private const int ScreenHeight = 1080;
     private const int TileSize = 32;
+    private const int FallLimitY = ScreenHeight + 128;
 
     private const float FadeStep = 0.2f;
     private const float CutsceneCameraZoom = 2.0f;
@@ -43,6 +44,7 @@ public class Scene
     private float _fadeAlpha;
 
     private Player _player;
+    private Vector2 _checkpoint;
 
     public GameMode GameMode { get; private set; }
     public double FPS { get; private set; }
@@ -59,6 +61,7 @@ public class Scene
     {
         _fadeAlpha = 0.0f;
         _fadeRectangle = new Rectangle(0, 0, ScreenWidth, ScreenHeight);
+        _checkpoint = new Vector2(PlayerStartX, PlayerStartY);
 
         var fadeColor = Enumerable.Repeat(Color.White, ScreenWidth * ScreenHeight).ToArray();
         _fadeTexture = new Texture2D(graphicsDevice, ScreenWidth, ScreenHeight);
@@ -120,6 +123,13 @@ public class Scene
     {
         _player.Update(deltaTime);
         UpdatePlayerPhysics(deltaTime);
+
+        if (PlayerFell())
+        {
+            RespawnPlayer(camera);
+            return;
+        }
+
         UpdatePlayingCamera(camera);
 
         if (PlayerTouchedCutsceneTrigger())
@@ -263,6 +273,26 @@ public class Scene
         }
 
         return false;
+    }
+
+    private bool PlayerFell()
+    {
+        return _player.Position.Y > FallLimitY;
+    }
+
+    private void RespawnPlayer(Camera camera)
+    {
+        _player.Move((int)_checkpoint.X, (int)_checkpoint.Y);
+        _player.CancelDash();
+        _player.ResetVelocity();
+        _player.Grounded();
+        _player.RestoreDash();
+
+        _fadeAlpha = 0.0f;
+        FPS = SecondsPerFramePlaying;
+        GameMode = GameMode.PLAYING;
+
+        UpdatePlayingCamera(camera);
     }
 
     private void StartFadeOut()

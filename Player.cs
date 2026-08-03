@@ -338,6 +338,11 @@ public class Player
         CancelDash();
     }
 
+    public void ResetVelocity()
+    {
+        _velocity = Vector2.Zero;
+    }
+
     public void Grounded()
     {
         _isGrounded = true;
