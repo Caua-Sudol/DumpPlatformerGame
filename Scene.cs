@@ -6,7 +6,7 @@ using TiledSharp;
 
 namespace DontLikePoetry;
 
-public enum GameMode
+public enum SceneMode
 {
    PLAYING = 0,
    CUTSCENE = 1,
@@ -46,7 +46,7 @@ public class Scene
     private Player _player;
     private Vector2 _checkpoint;
 
-    public GameMode GameMode { get; private set; }
+    public SceneMode SceneMode { get; private set; }
     public double FPS { get; private set; }
 
     public Player Player
@@ -73,7 +73,7 @@ public class Scene
         LoadMap();
         LoadPlatformTexture(graphicsDevice);
 
-        GameMode = GameMode.PLAYING;
+        SceneMode = SceneMode.PLAYING;
         FPS = SecondsPerFramePlaying;
     }
 
@@ -101,19 +101,19 @@ public class Scene
 
     public void Update(Camera camera, double deltaTime)
     {
-        if (GameMode == GameMode.PLAYING)
+        if (SceneMode == SceneMode.PLAYING)
         {
             UpdatePlaying(camera, deltaTime);
         }
-        else if (GameMode == GameMode.FADE_OUT)
+        else if (SceneMode == SceneMode.FADE_OUT)
         {
-            UpdateFadeOut();
+            UpdateFadeOut(camera);
         }
-        else if (GameMode == GameMode.FADE_IN)
+        else if (SceneMode == SceneMode.FADE_IN)
         {
             UpdateFadeIn();
         }
-        else if (GameMode == GameMode.CUTSCENE)
+        else if (SceneMode == SceneMode.CUTSCENE)
         {
             UpdateCutscene(camera, deltaTime);
         }
@@ -290,7 +290,7 @@ public class Scene
 
         _fadeAlpha = 0.0f;
         FPS = SecondsPerFramePlaying;
-        GameMode = GameMode.PLAYING;
+        SceneMode = SceneMode.PLAYING;
 
         UpdatePlayingCamera(camera);
     }
@@ -298,10 +298,10 @@ public class Scene
     private void StartFadeOut()
     {
         FPS = SecondsPerFrameCutscene;
-        GameMode = GameMode.FADE_OUT;
+        SceneMode = SceneMode.FADE_OUT;
     }
 
-    private void UpdateFadeOut()
+    private void UpdateFadeOut(Camera camera)
     {
         if (_fadeAlpha < 1.0f)
         {
@@ -312,7 +312,8 @@ public class Scene
         {
             _fadeAlpha = 1.0f;
             _player.Move(PlayerStartX, PlayerStartY);
-            GameMode = GameMode.FADE_IN;
+            UpdateCutsceneCamera(camera);
+            SceneMode = SceneMode.FADE_IN;
         }
     }
 
@@ -326,7 +327,7 @@ public class Scene
         if (_fadeAlpha <= 0.0f)
         {
             _fadeAlpha = 0.0f;
-            GameMode = GameMode.CUTSCENE;
+            SceneMode = SceneMode.CUTSCENE;
         }
     }
 
@@ -358,7 +359,7 @@ public class Scene
 
     private void FinishCutscene(Camera camera)
     {
-        GameMode = GameMode.PLAYING;
+        SceneMode = SceneMode.PLAYING;
         FPS = SecondsPerFramePlaying;
         camera.Zoom = 1.0f;
         _fadeAlpha = 0.0f;
@@ -400,8 +401,8 @@ public class Scene
 
     private bool ShouldDrawFade()
     {
-        return GameMode == GameMode.FADE_OUT
-            || GameMode == GameMode.FADE_IN
-            || GameMode == GameMode.CUTSCENE;
+        return SceneMode == SceneMode.FADE_OUT
+            || SceneMode == SceneMode.FADE_IN
+            || SceneMode == SceneMode.CUTSCENE;
     }
 }

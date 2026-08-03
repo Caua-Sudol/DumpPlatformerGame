@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace DontLikePoetry;
 
-public enum CurrentScreen
+public enum AppScreen
 {
     START_MENU = 1,
     PLAYING = 2
@@ -19,7 +19,7 @@ public class Game1 : Game
     private Camera _camera;
     private Scene _scene;
     private StartMenu _startMenu;
-    private CurrentScreen _activeScreen = CurrentScreen.START_MENU;
+    private AppScreen _activeScreen = AppScreen.START_MENU;
 
     private Vector2 positionCamera;
     private Vector2 dimentionsCamera;
@@ -73,23 +73,13 @@ public class Game1 : Game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
-        if(_activeScreen == CurrentScreen.PLAYING)
+        if(_activeScreen == AppScreen.PLAYING)
         {
-            _scene.Update(_camera, deltaTime);
+            UpdatePlaying(deltaTime);
         }
-        if(_activeScreen == CurrentScreen.START_MENU)
+        if(_activeScreen == AppScreen.START_MENU)
         {
-            _startMenu.Update();
-            
-            if(_startMenu._currentOption == Option.START && _startMenu._enterIsPressed)
-            {
-                _activeScreen = CurrentScreen.PLAYING;
-                _startMenu.Pressed = false;
-            }
-            else if(_startMenu._currentOption == Option.EXIT && _startMenu._enterIsPressed)
-            {
-                Exit();
-            }
+            UpdateStartMenu();
         }
         
         TargetElapsedTime = TimeSpan.FromSeconds(_scene.FPS);
@@ -101,15 +91,45 @@ public class Game1 : Game
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
-        if(_activeScreen == CurrentScreen.PLAYING)
+        if(_activeScreen == AppScreen.PLAYING)
         {
-            _scene.Draw(_spriteBatch, _camera);
+            DrawPlaying();
         }
-        if(_activeScreen == CurrentScreen.START_MENU)
+        if(_activeScreen == AppScreen.START_MENU)
         {
-            _startMenu.Draw(_spriteBatch);
+            DrawStartMenu();
         }
 
         base.Draw(gameTime);
+    }
+
+    private void UpdateStartMenu()
+    {
+        _startMenu.Update();
+        
+        if(_startMenu._currentOption == Option.START && _startMenu._enterIsPressed)
+        {
+            _activeScreen = AppScreen.PLAYING;
+            _startMenu.Pressed = false;
+        }
+        else if(_startMenu._currentOption == Option.EXIT && _startMenu._enterIsPressed)
+        {
+            Exit();
+        }
+    }
+
+    private void UpdatePlaying(double deltaTime)
+    {
+        _scene.Update(_camera, deltaTime);
+    }
+
+    private void DrawStartMenu()
+    {
+        _startMenu.Draw(_spriteBatch);
+    }
+
+    private void DrawPlaying()
+    {
+        _scene.Draw(_spriteBatch, _camera);
     }
 }
