@@ -138,7 +138,7 @@ public class Player
         if (State == PlayerState.Dashing)
             return;
 
-        if (isBreath && state.IsKeyDown(Keys.LeftShift))
+        if (isBreath && DashWasPressed(state))
         {
             StartDash(state, horizontalInput);
             return;
@@ -179,7 +179,7 @@ public class Player
 
     private void UpdateJumpBufferTimer(KeyboardState state, double deltaTime)
     {
-        if (state.IsKeyDown(Keys.Space) && _previousKeyboardState.IsKeyUp(Keys.Space))
+        if (JumpWasPressed(state))
         {
             _jumpBufferTimer = _jumpBufferTime;
         }
@@ -232,6 +232,16 @@ public class Player
             return 1;
 
         return 0;
+    }
+
+    private bool JumpWasPressed(KeyboardState state)
+    {
+        return state.IsKeyDown(Keys.Space) && _previousKeyboardState.IsKeyUp(Keys.Space);
+    }
+
+    private bool DashWasPressed(KeyboardState state)
+    {
+        return state.IsKeyDown(Keys.LeftShift) && _previousKeyboardState.IsKeyUp(Keys.LeftShift);
     }
 
     private void UpdateDash(double deltaTime)
