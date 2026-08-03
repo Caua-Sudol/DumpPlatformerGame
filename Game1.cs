@@ -14,7 +14,8 @@ public enum AppScreen
 public enum OverlayState
 {
     NONE = 0,
-    PAUSED = 1
+    PAUSED = 1,
+    DEATH_MENU = 2
 }
 
 public enum PauseOption
@@ -22,6 +23,12 @@ public enum PauseOption
     RESUME = 1,
     RESTART = 2,
     QUIT = 3
+}
+
+public enum DeathOption
+{
+    RETRY = 1,
+    QUIT = 2
 }
 
 public class Game1 : Game
@@ -36,6 +43,7 @@ public class Game1 : Game
     private AppScreen _activeScreen = AppScreen.START_MENU;
     private OverlayState _overlayState = OverlayState.NONE;
     private PauseOption _pauseOption = PauseOption.RESUME;
+    private DeathOption _deathOption = DeathOption.RETRY;
     private KeyboardState _previousKeyboardState;
 
     private Vector2 positionCamera;
@@ -47,6 +55,8 @@ public class Game1 : Game
     private Vector2 fontPositionPauseResume;
     private Vector2 fontPositionPauseRestart;
     private Vector2 fontPositionPauseQuit;
+    private Vector2 fontPositionDeathRetry;
+    private Vector2 fontPositionDeathQuit;
 
     public Game1()
     {
@@ -69,6 +79,8 @@ public class Game1 : Game
         fontPositionPauseResume = new Vector2(windowWidth/2, windowHeight/2);
         fontPositionPauseRestart = new Vector2(windowWidth/2, windowHeight/2 + 20);
         fontPositionPauseQuit = new Vector2(windowWidth/2, windowHeight/2 + 40);
+        fontPositionDeathRetry = new Vector2(windowWidth/2, windowHeight/2);
+        fontPositionDeathQuit = new Vector2(windowWidth/2, windowHeight/2 + 20);
 
         _startMenu = new StartMenu(font, fontPositionStart, fontPositionExit);
 
@@ -147,6 +159,12 @@ public class Game1 : Game
 
     private void UpdatePlaying(KeyboardState keyboardState, double deltaTime)
     {
+        if (_overlayState == OverlayState.DEATH_MENU)
+        {
+            UpdateDeathMenu(keyboardState);
+            return;
+        }
+
         if (EscapeWasPressed(keyboardState))
         {
             TogglePause();
@@ -159,6 +177,11 @@ public class Game1 : Game
         }
 
         _scene.Update(_camera, deltaTime);
+
+        if (_scene.PlayerIsDead)
+        {
+            OpenDeathMenu();
+        }
     }
 
     private void UpdatePauseMenu(KeyboardState keyboardState)
@@ -175,6 +198,19 @@ public class Game1 : Game
         if (KeyWasPressed(keyboardState, Keys.Enter))
         {
             SelectPauseOption();
+        }
+    }
+
+    private void UpdateDeathMenu(KeyboardState keyboardState)
+    {
+        if (KeyWasPressed(keyboardState, Keys.W) || KeyWasPressed(keyboardState, Keys.S))
+        {
+            ToggleDeathOption();
+        }
+
+        if (KeyWasPressed(keyboardState, Keys.Enter))
+        {
+            SelectDeathOption();
         }
     }
 
@@ -199,6 +235,12 @@ public class Game1 : Game
             _overlayState = OverlayState.PAUSED;
             _pauseOption = PauseOption.RESUME;
         }
+    }
+
+    private void OpenDeathMenu()
+    {
+        _overlayState = OverlayState.DEATH_MENU;
+        _deathOption = DeathOption.RETRY;
     }
 
     private void MovePauseOptionUp()
@@ -250,6 +292,31 @@ public class Game1 : Game
         }
     }
 
+    private void ToggleDeathOption()
+    {
+        if (_deathOption == DeathOption.RETRY)
+        {
+            _deathOption = DeathOption.QUIT;
+        }
+        else
+        {
+            _deathOption = DeathOption.RETRY;
+        }
+    }
+
+    private void SelectDeathOption()
+    {
+        if (_deathOption == DeathOption.RETRY)
+        {
+            _scene.Restart(_camera);
+            _overlayState = OverlayState.NONE;
+        }
+        else if (_deathOption == DeathOption.QUIT)
+        {
+            Exit();
+        }
+    }
+
     private void DrawStartMenu()
     {
         _startMenu.Draw(_spriteBatch);
@@ -262,6 +329,10 @@ public class Game1 : Game
         if (_overlayState == OverlayState.PAUSED)
         {
             DrawPauseOverlay();
+        }
+        else if (_overlayState == OverlayState.DEATH_MENU)
+        {
+            DrawDeathOverlay();
         }
     }
 
@@ -277,6 +348,24 @@ public class Game1 : Game
     private Color GetPauseOptionColor(PauseOption option)
     {
         if (_pauseOption == option)
+        {
+            return Color.Yellow;
+        }
+
+        return Color.White;
+    }
+
+    private void DrawDeathOverlay()
+    {
+        _spriteBatch.Begin();
+        _spriteBatch.DrawString(font, "Retry", fontPositionDeathRetry, GetDeathOptionColor(DeathOption.RETRY));
+        _spriteBatch.DrawString(font, "Quit", fontPositionDeathQuit, GetDeathOptionColor(DeathOption.QUIT));
+        _spriteBatch.End();
+    }
+
+    private Color GetDeathOptionColor(DeathOption option)
+    {
+        if (_deathOption == option)
         {
             return Color.Yellow;
         }

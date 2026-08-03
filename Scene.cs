@@ -45,9 +45,17 @@ public class Scene
 
     private Player _player;
     private Vector2 _checkpoint;
+    private bool _playerIsDead;
 
     public SceneMode SceneMode { get; private set; }
     public double FPS { get; private set; }
+    public bool PlayerIsDead
+    {
+        get
+        {
+            return _playerIsDead;
+        }
+    }
 
     public Player Player
     {
@@ -60,6 +68,7 @@ public class Scene
     public void LoadContent(GraphicsDevice graphicsDevice)
     {
         _fadeAlpha = 0.0f;
+        _playerIsDead = false;
         _fadeRectangle = new Rectangle(0, 0, ScreenWidth, ScreenHeight);
         _checkpoint = new Vector2(PlayerStartX, PlayerStartY);
 
@@ -131,7 +140,7 @@ public class Scene
 
         if (PlayerFell())
         {
-            RespawnPlayer(camera);
+            KillPlayer();
             return;
         }
 
@@ -285,8 +294,16 @@ public class Scene
         return _player.Position.Y > FallLimitY;
     }
 
+    private void KillPlayer()
+    {
+        _playerIsDead = true;
+        _player.CancelDash();
+        _player.ResetVelocity();
+    }
+
     private void RespawnPlayer(Camera camera)
     {
+        _playerIsDead = false;
         _player.Move((int)_checkpoint.X, (int)_checkpoint.Y);
         _player.CancelDash();
         _player.ResetVelocity();
