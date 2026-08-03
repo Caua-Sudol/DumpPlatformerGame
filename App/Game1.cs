@@ -5,32 +5,6 @@ using Microsoft.Xna.Framework.Input;
 
 namespace DontLikePoetry;
 
-public enum AppScreen
-{
-    START_MENU = 1,
-    PLAYING = 2
-}
-
-public enum OverlayState
-{
-    NONE = 0,
-    PAUSED = 1,
-    DEATH_MENU = 2
-}
-
-public enum PauseOption
-{
-    RESUME = 1,
-    RESTART = 2,
-    QUIT = 3
-}
-
-public enum DeathOption
-{
-    RETRY = 1,
-    QUIT = 2
-}
-
 public class Game1 : Game
 {
     private const double SecondsPerFrameMenu = 1.0 / 60.0;
@@ -42,23 +16,14 @@ public class Game1 : Game
     private Camera _camera;
     private Scene _scene;
     private StartMenu _startMenu;
+    private PauseMenu _pauseMenu;
+    private DeathMenu _deathMenu;
     private AppScreen _activeScreen = AppScreen.START_MENU;
     private OverlayState _overlayState = OverlayState.NONE;
-    private PauseOption _pauseOption = PauseOption.RESUME;
-    private DeathOption _deathOption = DeathOption.RETRY;
     private KeyboardState _previousKeyboardState;
 
     private Vector2 positionCamera;
     private Vector2 dimentionsCamera;
-
-    private SpriteFont font;
-    private Vector2 fontPositionStart;
-    private Vector2 fontPositionExit;
-    private Vector2 fontPositionPauseResume;
-    private Vector2 fontPositionPauseRestart;
-    private Vector2 fontPositionPauseQuit;
-    private Vector2 fontPositionDeathRetry;
-    private Vector2 fontPositionDeathQuit;
 
     public Game1()
     {
@@ -75,16 +40,12 @@ public class Game1 : Game
     { 
         _scene = new Scene();
 
-        font = Content.Load<SpriteFont>("font");
-        fontPositionStart = new Vector2(windowWidth/2, windowHeight/2);
-        fontPositionExit = new Vector2(windowWidth/2, windowHeight/2 + 20);
-        fontPositionPauseResume = new Vector2(windowWidth/2, windowHeight/2);
-        fontPositionPauseRestart = new Vector2(windowWidth/2, windowHeight/2 + 20);
-        fontPositionPauseQuit = new Vector2(windowWidth/2, windowHeight/2 + 40);
-        fontPositionDeathRetry = new Vector2(windowWidth/2, windowHeight/2);
-        fontPositionDeathQuit = new Vector2(windowWidth/2, windowHeight/2 + 20);
+        SpriteFont font = Content.Load<SpriteFont>("font");
+        Vector2 menuPosition = new Vector2(windowWidth / 2, windowHeight / 2);
 
-        _startMenu = new StartMenu(font, fontPositionStart, fontPositionExit);
+        _startMenu = new StartMenu(font, menuPosition, menuPosition + new Vector2(0, 20));
+        _pauseMenu = new PauseMenu(font, menuPosition);
+        _deathMenu = new DeathMenu(font, menuPosition);
 
         positionCamera = new Vector2((float)windowWidth/2, (float)windowHeight/2);
         dimentionsCamera = new Vector2((float)windowWidth, (float)windowHeight);
@@ -98,7 +59,6 @@ public class Game1 : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _scene.LoadContent(GraphicsDevice);
-        _startMenu.LoadContent(GraphicsDevice);
 
         TargetElapsedTime = TimeSpan.FromSeconds(SecondsPerFrameMenu);
     }
@@ -145,15 +105,14 @@ public class Game1 : Game
 
     private void UpdateStartMenu()
     {
-        _startMenu.Update();
+        Option selectedOption = _startMenu.Update();
         
-        if(_startMenu._currentOption == Option.START && _startMenu._enterIsPressed)
+        if(selectedOption == Option.START)
         {
             _activeScreen = AppScreen.PLAYING;
             _overlayState = OverlayState.NONE;
-            _startMenu.Pressed = false;
         }
-        else if(_startMenu._currentOption == Option.EXIT && _startMenu._enterIsPressed)
+        else if(selectedOption == Option.EXIT)
         {
             Exit();
         }
@@ -198,32 +157,30 @@ public class Game1 : Game
 
     private void UpdatePauseMenu(KeyboardState keyboardState)
     {
-        if (KeyWasPressed(keyboardState, Keys.W))
-        {
-            MovePauseOptionUp();
-        }
-        else if (KeyWasPressed(keyboardState, Keys.S))
-        {
-            MovePauseOptionDown();
-        }
+        PauseOption selectedOption = _pauseMenu.Update(keyboardState, _previousKeyboardState);
 
-        if (KeyWasPressed(keyboardState, Keys.Enter))
+        if (selectedOption == PauseOption.RESUME)
+            _overlayState = OverlayState.NONE;
+        else if (selectedOption == PauseOption.RESTART)
         {
-            SelectPauseOption();
+            _scene.Restart(_camera);
+            _overlayState = OverlayState.NONE;
         }
+        else if (selectedOption == PauseOption.QUIT)
+            Exit();
     }
 
     private void UpdateDeathMenu(KeyboardState keyboardState)
     {
-        if (KeyWasPressed(keyboardState, Keys.W) || KeyWasPressed(keyboardState, Keys.S))
-        {
-            ToggleDeathOption();
-        }
+        DeathOption selectedOption = _deathMenu.Update(keyboardState, _previousKeyboardState);
 
-        if (KeyWasPressed(keyboardState, Keys.Enter))
+        if (selectedOption == DeathOption.RETRY)
         {
-            SelectDeathOption();
+            _scene.Restart(_camera);
+            _overlayState = OverlayState.NONE;
         }
+        else if (selectedOption == DeathOption.QUIT)
+            Exit();
     }
 
     private bool EscapeWasPressed(KeyboardState keyboardState)
@@ -245,88 +202,14 @@ public class Game1 : Game
         else
         {
             _overlayState = OverlayState.PAUSED;
-            _pauseOption = PauseOption.RESUME;
+            _pauseMenu.Open();
         }
     }
 
     private void OpenDeathMenu()
     {
         _overlayState = OverlayState.DEATH_MENU;
-        _deathOption = DeathOption.RETRY;
-    }
-
-    private void MovePauseOptionUp()
-    {
-        if (_pauseOption == PauseOption.RESUME)
-        {
-            _pauseOption = PauseOption.QUIT;
-        }
-        else if (_pauseOption == PauseOption.RESTART)
-        {
-            _pauseOption = PauseOption.RESUME;
-        }
-        else if (_pauseOption == PauseOption.QUIT)
-        {
-            _pauseOption = PauseOption.RESTART;
-        }
-    }
-
-    private void MovePauseOptionDown()
-    {
-        if (_pauseOption == PauseOption.RESUME)
-        {
-            _pauseOption = PauseOption.RESTART;
-        }
-        else if (_pauseOption == PauseOption.RESTART)
-        {
-            _pauseOption = PauseOption.QUIT;
-        }
-        else if (_pauseOption == PauseOption.QUIT)
-        {
-            _pauseOption = PauseOption.RESUME;
-        }
-    }
-
-    private void SelectPauseOption()
-    {
-        if (_pauseOption == PauseOption.RESUME)
-        {
-            _overlayState = OverlayState.NONE;
-        }
-        else if (_pauseOption == PauseOption.RESTART)
-        {
-            _scene.Restart(_camera);
-            _overlayState = OverlayState.NONE;
-        }
-        else if (_pauseOption == PauseOption.QUIT)
-        {
-            Exit();
-        }
-    }
-
-    private void ToggleDeathOption()
-    {
-        if (_deathOption == DeathOption.RETRY)
-        {
-            _deathOption = DeathOption.QUIT;
-        }
-        else
-        {
-            _deathOption = DeathOption.RETRY;
-        }
-    }
-
-    private void SelectDeathOption()
-    {
-        if (_deathOption == DeathOption.RETRY)
-        {
-            _scene.Restart(_camera);
-            _overlayState = OverlayState.NONE;
-        }
-        else if (_deathOption == DeathOption.QUIT)
-        {
-            Exit();
-        }
+        _deathMenu.Open();
     }
 
     private void DrawStartMenu()
@@ -340,48 +223,11 @@ public class Game1 : Game
 
         if (_overlayState == OverlayState.PAUSED)
         {
-            DrawPauseOverlay();
+            _pauseMenu.Draw(_spriteBatch);
         }
         else if (_overlayState == OverlayState.DEATH_MENU)
         {
-            DrawDeathOverlay();
+            _deathMenu.Draw(_spriteBatch);
         }
-    }
-
-    private void DrawPauseOverlay()
-    {
-        _spriteBatch.Begin();
-        _spriteBatch.DrawString(font, "Resume", fontPositionPauseResume, GetPauseOptionColor(PauseOption.RESUME));
-        _spriteBatch.DrawString(font, "Restart", fontPositionPauseRestart, GetPauseOptionColor(PauseOption.RESTART));
-        _spriteBatch.DrawString(font, "Quit", fontPositionPauseQuit, GetPauseOptionColor(PauseOption.QUIT));
-        _spriteBatch.End();
-    }
-
-    private Color GetPauseOptionColor(PauseOption option)
-    {
-        if (_pauseOption == option)
-        {
-            return Color.Yellow;
-        }
-
-        return Color.White;
-    }
-
-    private void DrawDeathOverlay()
-    {
-        _spriteBatch.Begin();
-        _spriteBatch.DrawString(font, "Retry", fontPositionDeathRetry, GetDeathOptionColor(DeathOption.RETRY));
-        _spriteBatch.DrawString(font, "Quit", fontPositionDeathQuit, GetDeathOptionColor(DeathOption.QUIT));
-        _spriteBatch.End();
-    }
-
-    private Color GetDeathOptionColor(DeathOption option)
-    {
-        if (_deathOption == option)
-        {
-            return Color.Yellow;
-        }
-
-        return Color.White;
     }
 }

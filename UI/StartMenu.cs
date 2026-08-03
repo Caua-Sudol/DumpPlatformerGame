@@ -1,6 +1,3 @@
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Xml;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -20,8 +17,7 @@ public class StartMenu
     private SpriteFont _font;
     private Vector2 _fontPositionStart;
     private Vector2 _fontPositionExit;
-    public Option _currentOption {get; private set;} = Option.NONE;
-    public bool _enterIsPressed {get; private set;} = false;
+    private Option _currentOption = Option.NONE;
 
     public StartMenu(SpriteFont font, Vector2 fontPositionStart, Vector2 fontPositionExit)
     {
@@ -30,23 +26,7 @@ public class StartMenu
         _fontPositionExit = fontPositionExit;
     }
 
-    public bool Pressed
-    {
-        set
-        {
-            _enterIsPressed = value;
-        }
-        get
-        {
-            return _enterIsPressed;
-        }
-    }
-
-    public void LoadContent(GraphicsDevice graphicsDevice)
-    {
-    }
-
-    public void Update()
+    public Option Update()
     {
         // movimento de teclado muda a opção selecionada trocando o "currentOption
         var state = Keyboard.GetState();
@@ -61,8 +41,10 @@ public class StartMenu
         }
         if (state.IsKeyDown(Keys.Enter))
         {
-            _enterIsPressed = true;
+            return _currentOption;
         }
+
+        return Option.NONE;
     }
 
     public void Draw(SpriteBatch spriteBatch)
