@@ -38,6 +38,8 @@ public class Player
     private float _groundAcceleration = 3300f;
     private float _groundDeceleration = 3300f;
     private float _airAcceleration = 1800f;
+    private double _coyoteTime = 0.10;
+    private double _coyoteTimer;
 
     public bool isBreath { get; private set; } = true;
     private Vector2 _dashDirection;
@@ -91,6 +93,8 @@ public class Player
         var keyboardState = Keyboard.GetState();
         int horizontalInput = ReadHorizontalInput(keyboardState);
 
+        UpdateCoyoteTimer(deltaTime);
+
         if (horizontalInput != 0)
             _direction = horizontalInput > 0 ? Direction.Rigth : Direction.Left;
 
@@ -137,22 +141,45 @@ public class Player
             return;
         }
 
+        if (state.IsKeyDown(Keys.Space) && CanJump())
+        {
+            StartJump();
+            return;
+        }
+
         if (_isGrounded)
         {
-            if (state.IsKeyDown(Keys.Space))
-            {
-                _velocity = new Vector2(_velocity.X, -_maxVelocity.Y);
-                _isGrounded = false;
-                State = PlayerState.Jumping;
-                return;
-            }
-
             State = horizontalInput != 0 ? PlayerState.Moving : PlayerState.Idle;
         }
         else
         {
             State = _velocity.Y < 0 ? PlayerState.Jumping : PlayerState.Falling;
         }
+    }
+
+    private void UpdateCoyoteTimer(double deltaTime)
+    {
+        if (_isGrounded)
+        {
+            _coyoteTimer = _coyoteTime;
+        }
+        else if (_coyoteTimer > 0)
+        {
+            _coyoteTimer -= deltaTime;
+        }
+    }
+
+    private bool CanJump()
+    {
+        return _isGrounded || _coyoteTimer > 0;
+    }
+
+    private void StartJump()
+    {
+        _velocity = new Vector2(_velocity.X, -_maxVelocity.Y);
+        _isGrounded = false;
+        _coyoteTimer = 0;
+        State = PlayerState.Jumping;
     }
 
     private void StartDash(KeyboardState state, int horizontalInput)
@@ -270,6 +297,7 @@ public class Player
     public void Grounded()
     {
         _isGrounded = true;
+        _coyoteTimer = _coyoteTime;
     }
 
     public void NotGrounded()
