@@ -16,8 +16,8 @@ public enum SceneMode
 
 public class Scene
 {
-    private const int PlayerStartX = 10;
-    private const int PlayerStartY = 552;
+    private const int DefaultPlayerStartX = 10;
+    private const int DefaultPlayerStartY = 552;
     private const int PlayerWidth = 16;
     private const int PlayerHeight = 16;
 
@@ -46,6 +46,8 @@ public class Scene
     private Player _player;
     private Vector2 _checkpoint;
     private bool _playerIsDead;
+    private readonly string _mapPath;
+    private readonly Vector2 _playerStart;
 
     public SceneMode SceneMode { get; private set; }
     public double FPS { get; private set; }
@@ -55,6 +57,17 @@ public class Scene
         {
             return _playerIsDead;
         }
+    }
+
+    public Scene()
+        : this("Content/SimpleCutsceneMap.tmx", new Vector2(DefaultPlayerStartX, DefaultPlayerStartY))
+    {
+    }
+
+    public Scene(string mapPath, Vector2 playerStart)
+    {
+        _mapPath = mapPath;
+        _playerStart = playerStart;
     }
 
     public Player Player
@@ -70,13 +83,13 @@ public class Scene
         _fadeAlpha = 0.0f;
         _playerIsDead = false;
         _fadeRectangle = new Rectangle(0, 0, ScreenWidth, ScreenHeight);
-        _checkpoint = new Vector2(PlayerStartX, PlayerStartY);
+        _checkpoint = _playerStart;
 
         var fadeColor = Enumerable.Repeat(Color.White, ScreenWidth * ScreenHeight).ToArray();
         _fadeTexture = new Texture2D(graphicsDevice, ScreenWidth, ScreenHeight);
         _fadeTexture.SetData(fadeColor);
 
-        _player = new Player(PlayerStartX, PlayerStartY, PlayerGravity, PlayerWidth, PlayerHeight);
+        _player = new Player((int)_playerStart.X, (int)_playerStart.Y, PlayerGravity, PlayerWidth, PlayerHeight);
         _player.LoadContent(graphicsDevice, PlayerWidth, PlayerHeight);
 
         LoadMap();
@@ -88,7 +101,7 @@ public class Scene
 
     private void LoadMap()
     {
-        var map = new TmxMap("Content/SimpleCutsceneMap.tmx");
+        var map = new TmxMap(_mapPath);
 
         foreach (var row in map.ObjectGroups["mapaGeral"].Objects)
         {
@@ -333,7 +346,7 @@ public class Scene
         if (_fadeAlpha >= 1.0f)
         {
             _fadeAlpha = 1.0f;
-            _player.Move(PlayerStartX, PlayerStartY);
+            _player.Move((int)_checkpoint.X, (int)_checkpoint.Y);
             UpdateCutsceneCamera(camera);
             SceneMode = SceneMode.FADE_IN;
         }
@@ -385,7 +398,7 @@ public class Scene
         FPS = SecondsPerFramePlaying;
         camera.Zoom = 1.0f;
         _fadeAlpha = 0.0f;
-        _player.Move(PlayerStartX, PlayerStartY);
+        _player.Move((int)_playerStart.X, (int)_playerStart.Y);
     }
 
     public void Draw(SpriteBatch spriteBatch, Camera camera)
