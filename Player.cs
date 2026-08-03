@@ -40,6 +40,8 @@ public class Player
     private float _airAcceleration = 1800f;
     private double _coyoteTime = 0.10;
     private double _coyoteTimer;
+    private double _jumpBufferTime = 0.10;
+    private double _jumpBufferTimer;
 
     public bool isBreath { get; private set; } = true;
     private Vector2 _dashDirection;
@@ -94,6 +96,7 @@ public class Player
         int horizontalInput = ReadHorizontalInput(keyboardState);
 
         UpdateCoyoteTimer(deltaTime);
+        UpdateJumpBufferTimer(keyboardState, deltaTime);
 
         if (horizontalInput != 0)
             _direction = horizontalInput > 0 ? Direction.Rigth : Direction.Left;
@@ -104,6 +107,8 @@ public class Player
             UpdateDash(deltaTime);
         else
             ApplyNormalMovement(keyboardState, horizontalInput, deltaTime);
+
+        _previousKeyboardState = keyboardState;
     }
 
     private int ReadHorizontalInput(KeyboardState state)
@@ -117,8 +122,6 @@ public class Player
             _lastHorizontalKeyPressed = 1;
         if (aDown && !aWasDown)
             _lastHorizontalKeyPressed = -1;
-
-        _previousKeyboardState = state;
 
         if (dDown && aDown)
             return _lastHorizontalKeyPressed;
@@ -141,7 +144,7 @@ public class Player
             return;
         }
 
-        if (state.IsKeyDown(Keys.Space) && CanJump())
+        if (HasBufferedJump() && CanJump())
         {
             StartJump();
             return;
@@ -174,23 +177,38 @@ public class Player
         return _isGrounded || _coyoteTimer > 0;
     }
 
+    private void UpdateJumpBufferTimer(KeyboardState state, double deltaTime)
+    {
+        if (state.IsKeyDown(Keys.Space) && _previousKeyboardState.IsKeyUp(Keys.Space))
+        {
+            _jumpBufferTimer = _jumpBufferTime;
+        }
+        else if (_jumpBufferTimer > 0)
+        {
+            _jumpBufferTimer -= deltaTime;
+        }
+    }
+
+    private bool HasBufferedJump()
+    {
+        return _jumpBufferTimer > 0;
+    }
+
     private void StartJump()
     {
         _velocity = new Vector2(_velocity.X, -_maxVelocity.Y);
         _isGrounded = false;
         _coyoteTimer = 0;
+        _jumpBufferTimer = 0;
         State = PlayerState.Jumping;
     }
 
     private void StartDash(KeyboardState state, int horizontalInput)
     {
-        int verticalInput = 0;
-        if (state.IsKeyDown(Keys.W))
-            verticalInput = -1;
-        else if (state.IsKeyDown(Keys.S))
-            verticalInput = 1;
+        int dashHorizontalInput = horizontalInput;
+        int dashVerticalInput = ReadVerticalInput(state);
 
-        Vector2 direction = new Vector2(horizontalInput, verticalInput);
+        Vector2 direction = new Vector2(dashHorizontalInput, dashVerticalInput);
 
         if (direction == Vector2.Zero)
             direction = new Vector2(_direction == Direction.Rigth ? 1 : -1, 0);
@@ -201,6 +219,19 @@ public class Player
         _dashTimer = _dashDuration;
         State = PlayerState.Dashing;
         isBreath = false;
+    }
+
+    private int ReadVerticalInput(KeyboardState state)
+    {
+        bool wDown = state.IsKeyDown(Keys.W);
+        bool sDown = state.IsKeyDown(Keys.S);
+
+        if (wDown && !sDown)
+            return -1;
+        if (sDown && !wDown)
+            return 1;
+
+        return 0;
     }
 
     private void UpdateDash(double deltaTime)
@@ -282,16 +313,19 @@ public class Player
     public void StopWalkX()
     {
         _velocity = new Vector2(0, _velocity.Y);
+        CancelDash();
     }
 
     public void StopWalkY()
     {
         _velocity = new Vector2(_velocity.X, 0);
+        CancelDash();
     }
 
     public void StopFalling()
     {
         _velocity = new Vector2(_velocity.X, 0);
+        CancelDash();
     }
 
     public void Grounded()
