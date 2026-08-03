@@ -137,10 +137,14 @@ public class Scene
     private void MovePlayerX(double deltaTime)
     {
         _player.WalkX(_player.Velocity.X, deltaTime);
+        ResolvePlayerXCollisions();
+    }
 
+    private void ResolvePlayerXCollisions()
+    {
         foreach (var platform in _platforms)
         {
-            if (PlayerTouchedObj(platform))
+            if (PlayerIntersects(platform))
             {
                 ResolveHorizontalCollision(platform);
                 break;
@@ -152,11 +156,11 @@ public class Scene
     {
         var playerPosition = _player.Position;
 
-        if (_player.Velocity.X > 0)
+        if (PlayerIsMovingRight())
         {
             playerPosition.X = platform.Left - _player.HitBox.Width;
         }
-        else if (_player.Velocity.X < 0)
+        else if (PlayerIsMovingLeft())
         {
             playerPosition.X = platform.Right;
         }
@@ -169,10 +173,14 @@ public class Scene
     {
         _player.NotGrounded();
         _player.WalkY(_player.Velocity.Y, deltaTime);
+        ResolvePlayerYCollisions();
+    }
 
+    private void ResolvePlayerYCollisions()
+    {
         foreach (var platform in _platforms)
         {
-            if (PlayerTouchedObj(platform))
+            if (PlayerIntersects(platform))
             {
                 ResolveVerticalCollision(platform);
                 break;
@@ -184,11 +192,11 @@ public class Scene
     {
         var playerPosition = _player.Position;
 
-        if (_player.Velocity.Y > 0)
+        if (PlayerIsFalling())
         {
             playerPosition.Y = platform.Top - _player.HitBox.Height;
         }
-        else if (_player.Velocity.Y < 0)
+        else if (PlayerIsJumping())
         {
             playerPosition.Y = platform.Bottom;
         }
@@ -199,7 +207,7 @@ public class Scene
 
     private void UpdateGroundedState()
     {
-        var groundCheck = new Rectangle(_player.HitBox.X, _player.HitBox.Bottom, _player.HitBox.Width, 1);
+        var groundCheck = GetGroundCheck();
 
         foreach (var platform in _platforms)
         {
@@ -213,16 +221,41 @@ public class Scene
         }
     }
 
-    private bool PlayerTouchedObj(Rectangle obj)
+    private Rectangle GetGroundCheck()
+    {
+        return new Rectangle(_player.HitBox.X, _player.HitBox.Bottom, _player.HitBox.Width, 1);
+    }
+
+    private bool PlayerIntersects(Rectangle obj)
     {
         return _player.HitBox.Intersects(obj);
+    }
+
+    private bool PlayerIsMovingRight()
+    {
+        return _player.Velocity.X > 0;
+    }
+
+    private bool PlayerIsMovingLeft()
+    {
+        return _player.Velocity.X < 0;
+    }
+
+    private bool PlayerIsFalling()
+    {
+        return _player.Velocity.Y > 0;
+    }
+
+    private bool PlayerIsJumping()
+    {
+        return _player.Velocity.Y < 0;
     }
 
     private bool PlayerTouchedCutsceneTrigger()
     {
         foreach (var trigger in _triggerCollisions)
         {
-            if (PlayerTouchedObj(trigger))
+            if (PlayerIntersects(trigger))
             {
                 return true;
             }
