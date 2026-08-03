@@ -215,7 +215,7 @@ public class Scene
             {
                 _player.Grounded();
                 _player.CancelDash();
-                _player.MoreBreath();
+                _player.RestoreDash();
                 break;
             }
         }

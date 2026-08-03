@@ -43,7 +43,7 @@ public class Player
     private double _jumpBufferTime = 0.10;
     private double _jumpBufferTimer;
 
-    public bool isBreath { get; private set; } = true;
+    public bool CanDash { get; private set; } = true;
     private Vector2 _dashDirection;
     private float _dashSpeed = 960f;
     private float _dashDuration = 0.18f;
@@ -138,7 +138,7 @@ public class Player
         if (State == PlayerState.Dashing)
             return;
 
-        if (isBreath && DashWasPressed(state))
+        if (CanDash && DashWasPressed(state))
         {
             StartDash(state, horizontalInput);
             return;
@@ -218,7 +218,7 @@ public class Player
         _dashDirection = direction;
         _dashTimer = _dashDuration;
         State = PlayerState.Dashing;
-        isBreath = false;
+        CanDash = false;
     }
 
     private int ReadVerticalInput(KeyboardState state)
@@ -349,9 +349,9 @@ public class Player
         _isGrounded = false;
     }
 
-    public void MoreBreath()
+    public void RestoreDash()
     {
-        isBreath = true;
+        CanDash = true;
     }
 
     public void Draw(SpriteBatch spriteBatch, Vector2 actor)
