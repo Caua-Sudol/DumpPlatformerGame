@@ -1,9 +1,8 @@
-using Microsoft.Xna.Framework;
-using System.Linq;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using TiledSharp;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using TiledSharp;
 
 namespace DontLikePoetry;
 
@@ -11,7 +10,6 @@ public enum GameMode
 {
    PLAYING = 0,
    CUTSCENE = 1,
-
    FADE_OUT = 2,
    FADE_IN = 3
 }
@@ -22,20 +20,27 @@ public class Scene
     private const int PlayerStartY = 552;
     private const int PlayerWidth = 16;
     private const int PlayerHeight = 16;
-    // private Vector2 PlayerVelocity = new Vector2(10.0f, 10.0f); // Não vai ser const, velocidade vai ficar variando
-    private double PlayerGravity;
-    private double SecondsPerFramePlaying = 1.0 / 60.0f;
-    private double SecondsPerFrameCutscene = 1.0 / 5.0f;
 
-    private List<Rectangle> _platform = new List<Rectangle>();
-    private List<Rectangle> _triggerColision = new List<Rectangle>();
-    private Color [] _platfColor;
-    private Texture2D fadeTexture;
+    private const double PlayerGravity = -1800.0;
+    private const double SecondsPerFramePlaying = 1.0 / 60.0;
+    private const double SecondsPerFrameCutscene = 1.0 / 5.0;
 
-    private Color [] _fadeColor;
-    private Rectangle _fadeRec;
-    private Texture2D _platformeTexture;
-    private float _fadeAlph;
+    private const int ScreenWidth = 1920;
+    private const int ScreenHeight = 1080;
+    private const int TileSize = 32;
+
+    private const float FadeStep = 0.2f;
+    private const float CutsceneCameraZoom = 2.0f;
+    private const float CutsceneWalkSpeed = 10.0f;
+    private const float CutsceneEndX = 940.0f;
+
+    private readonly List<Rectangle> _platforms = new List<Rectangle>();
+    private readonly List<Rectangle> _triggerCollisions = new List<Rectangle>();
+
+    private Texture2D _fadeTexture;
+    private Rectangle _fadeRectangle;
+    private Texture2D _platformTexture;
+    private float _fadeAlpha;
 
     private Player _player;
 
@@ -52,126 +57,153 @@ public class Scene
 
     public void LoadContent(GraphicsDevice graphicsDevice)
     {
+        _fadeAlpha = 0.0f;
+        _fadeRectangle = new Rectangle(0, 0, ScreenWidth, ScreenHeight);
 
-        PlayerGravity = -1800f;
-
-        _fadeAlph = 0.0f;
-
-        _fadeColor = Enumerable.Repeat(Color.White, 1920*1080).ToArray();
-        _fadeRec = new Rectangle(0, 0, 1920, 1080);
-        fadeTexture = new Texture2D(graphicsDevice, 1920, 1080);
-        fadeTexture.SetData(_fadeColor);        
+        var fadeColor = Enumerable.Repeat(Color.White, ScreenWidth * ScreenHeight).ToArray();
+        _fadeTexture = new Texture2D(graphicsDevice, ScreenWidth, ScreenHeight);
+        _fadeTexture.SetData(fadeColor);
 
         _player = new Player(PlayerStartX, PlayerStartY, PlayerGravity, PlayerWidth, PlayerHeight);
         _player.LoadContent(graphicsDevice, PlayerWidth, PlayerHeight);
 
-        var map = new TmxMap("Content/SimpleCutsceneMap.tmx");
-
-        foreach(var row in map.ObjectGroups["mapaGeral"].Objects)
-        {
-            _platform.Add(new Rectangle((int)row.X, (int)row.Y, (int)row.Width, (int)row.Height));
-        }
-        _platfColor = Enumerable.Repeat(Color.Purple, 32*32).ToArray();
-        _platformeTexture = new Texture2D(graphicsDevice, 32, 32);
-        _platformeTexture.SetData(_platfColor);
-
-        foreach(var row in map.ObjectGroups["triggerColision"].Objects)
-        {
-            _triggerColision.Add(new Rectangle((int)row.X, (int)row.Y, (int)row.Width, (int)row.Height));
-        }
+        LoadMap();
+        LoadPlatformTexture(graphicsDevice);
 
         GameMode = GameMode.PLAYING;
         FPS = SecondsPerFramePlaying;
+    }
+
+    private void LoadMap()
+    {
+        var map = new TmxMap("Content/SimpleCutsceneMap.tmx");
+
+        foreach (var row in map.ObjectGroups["mapaGeral"].Objects)
+        {
+            _platforms.Add(new Rectangle((int)row.X, (int)row.Y, (int)row.Width, (int)row.Height));
+        }
+
+        foreach (var row in map.ObjectGroups["triggerColision"].Objects)
+        {
+            _triggerCollisions.Add(new Rectangle((int)row.X, (int)row.Y, (int)row.Width, (int)row.Height));
+        }
+    }
+
+    private void LoadPlatformTexture(GraphicsDevice graphicsDevice)
+    {
+        var platformColor = Enumerable.Repeat(Color.Purple, TileSize * TileSize).ToArray();
+        _platformTexture = new Texture2D(graphicsDevice, TileSize, TileSize);
+        _platformTexture.SetData(platformColor);
     }
 
     public void Update(Camera camera, double deltaTime)
     {
         if (GameMode == GameMode.PLAYING)
         {
-            _player.Update(deltaTime);
-
-            if (PlayerTouchedObj(_triggerColision[0]))
-            {
-                FPS = SecondsPerFrameCutscene;
-                GameMode = GameMode.FADE_OUT;
-            }
-        }
-        else if (GameMode == GameMode.CUTSCENE)
-        {
-            StartCutscene(camera, deltaTime);
+            UpdatePlaying(deltaTime);
         }
         else if (GameMode == GameMode.FADE_OUT)
         {
-            if(_fadeAlph < 1.0f)
-            {
-                _fadeAlph += 0.2f;
-            }
-            if(_fadeAlph >= 1.0f)
-            {
-
-                _player.Move(PlayerStartX, PlayerStartY);
-                GameMode = GameMode.FADE_IN;
-            }
-            
+            UpdateFadeOut();
         }
         else if (GameMode == GameMode.FADE_IN)
         {
-            _fadeAlph -= 0.2f;
-
-            if(_fadeAlph <= 0.0f)
-            {
-                GameMode = GameMode.CUTSCENE;
-            }
+            UpdateFadeIn();
         }
-        _player.WalkX(_player._velocity.X, deltaTime);
-        foreach(var plat in _platform)
+        else if (GameMode == GameMode.CUTSCENE)
         {
-            if(PlayerTouchedObj(plat))
+            UpdateCutscene(camera, deltaTime);
+        }
+    }
+
+    private void UpdatePlaying(double deltaTime)
+    {
+        _player.Update(deltaTime);
+        UpdatePlayerPhysics(deltaTime);
+
+        if (PlayerTouchedCutsceneTrigger())
+        {
+            StartFadeOut();
+        }
+    }
+
+    private void UpdatePlayerPhysics(double deltaTime)
+    {
+        MovePlayerX(deltaTime);
+        MovePlayerY(deltaTime);
+        UpdateGroundedState();
+    }
+
+    private void MovePlayerX(double deltaTime)
+    {
+        _player.WalkX(_player._velocity.X, deltaTime);
+
+        foreach (var platform in _platforms)
+        {
+            if (PlayerTouchedObj(platform))
             {
-                var tempPlayer = _player.Position;
-                if(_player._velocity.X > 0)
-                {
-                    tempPlayer.X = plat.Left - _player.HitBox.Width;
-                }
-                else
-                {
-                    tempPlayer.X = plat.Right; 
-                }
-                _player.Position = tempPlayer;
-                _player.StopWalkX();
+                ResolveHorizontalCollision(platform);
                 break;
             }
         }
+    }
 
+    private void ResolveHorizontalCollision(Rectangle platform)
+    {
+        var playerPosition = _player.Position;
+
+        if (_player._velocity.X > 0)
+        {
+            playerPosition.X = platform.Left - _player.HitBox.Width;
+        }
+        else if (_player._velocity.X < 0)
+        {
+            playerPosition.X = platform.Right;
+        }
+
+        _player.Position = playerPosition;
+        _player.StopWalkX();
+    }
+
+    private void MovePlayerY(double deltaTime)
+    {
         _player.NotGrounded();
         _player.WalkY(_player._velocity.Y, deltaTime);
-        
-        foreach(var plat in _platform)
+
+        foreach (var platform in _platforms)
         {
-            if(PlayerTouchedObj(plat))
+            if (PlayerTouchedObj(platform))
             {
-                var tempPlayer = _player.Position;
-                
-                if (_player._velocity.Y > 0)
-                {
-                    tempPlayer.Y = plat.Top - _player.HitBox.Height;
-                    _player.StopFalling(); // Pode ser retirado
-                }
-                else if(_player._velocity.Y < 0)
-                {
-                    tempPlayer.Y = plat.Bottom;
-                }
-                
-                _player.Position = tempPlayer;
-                _player.StopWalkY();
+                ResolveVerticalCollision(platform);
                 break;
             }
         }
+    }
 
-        Rectangle tempHit = new Rectangle(_player.HitBox.X, _player.HitBox.Bottom, _player.HitBox.Width, 1); //Ajustando flik com o chão
-        foreach(var plat in _platform)
+    private void ResolveVerticalCollision(Rectangle platform)
+    {
+        var playerPosition = _player.Position;
+
+        if (_player._velocity.Y > 0)
         {
-            if(tempHit.Intersects(plat))
+            playerPosition.Y = platform.Top - _player.HitBox.Height;
+        }
+        else if (_player._velocity.Y < 0)
+        {
+            playerPosition.Y = platform.Bottom;
+        }
+
+        _player.Position = playerPosition;
+        _player.StopWalkY();
+    }
+
+    private void UpdateGroundedState()
+    {
+        var groundCheck = new Rectangle(_player.HitBox.X, _player.HitBox.Bottom, _player.HitBox.Width, 1);
+
+        foreach (var platform in _platforms)
+        {
+            if (groundCheck.Intersects(platform))
             {
                 _player.Grounded();
                 _player.CancelDash();
@@ -186,18 +218,62 @@ public class Scene
         return _player.HitBox.Intersects(obj);
     }
 
-    private void StartCutscene(Camera camera, double deltaTime)
+    private bool PlayerTouchedCutsceneTrigger()
     {
-        camera.Zoom = 2.0f;
-        UpdateCutscene(camera, deltaTime);
+        foreach (var trigger in _triggerCollisions)
+        {
+            if (PlayerTouchedObj(trigger))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void StartFadeOut()
+    {
+        FPS = SecondsPerFrameCutscene;
+        GameMode = GameMode.FADE_OUT;
+    }
+
+    private void UpdateFadeOut()
+    {
+        if (_fadeAlpha < 1.0f)
+        {
+            _fadeAlpha += FadeStep;
+        }
+
+        if (_fadeAlpha >= 1.0f)
+        {
+            _fadeAlpha = 1.0f;
+            _player.Move(PlayerStartX, PlayerStartY);
+            GameMode = GameMode.FADE_IN;
+        }
+    }
+
+    private void UpdateFadeIn()
+    {
+        if (_fadeAlpha > 0.0f)
+        {
+            _fadeAlpha -= FadeStep;
+        }
+
+        if (_fadeAlpha <= 0.0f)
+        {
+            _fadeAlpha = 0.0f;
+            GameMode = GameMode.CUTSCENE;
+        }
     }
 
     private void UpdateCutscene(Camera camera, double deltaTime)
     {
+        camera.Zoom = CutsceneCameraZoom;
         camera.Update(_player);
-        if(_player.Position.X <= 940)
+
+        if (_player.Position.X <= CutsceneEndX)
         {
-            _player.Walk(10, 0, deltaTime);
+            _player.Walk(CutsceneWalkSpeed, 0, deltaTime);
         }
         else
         {
@@ -210,24 +286,27 @@ public class Scene
         GameMode = GameMode.PLAYING;
         FPS = SecondsPerFramePlaying;
         camera.Zoom = 1.0f;
-        _fadeAlph = 0.0f;
+        _fadeAlpha = 0.0f;
         _player.Move(PlayerStartX, PlayerStartY);
     }
 
     public void Draw(SpriteBatch spriteBatch, Camera camera)
     {
-            var cameraTransform = camera.GetTransform();
-            spriteBatch.Begin(transformMatrix: cameraTransform);
+        var cameraTransform = camera.GetTransform();
+        spriteBatch.Begin(transformMatrix: cameraTransform);
 
-            _player.Draw(spriteBatch, _player.Position);
-            foreach(var row in _platform)
-            {
-                spriteBatch.Draw(_platformeTexture, row, Color.Purple);
-            }
-            if (GameMode == GameMode.FADE_OUT || GameMode == GameMode.FADE_IN || GameMode == GameMode.CUTSCENE)
-            {
-                spriteBatch.Draw(fadeTexture, _fadeRec, new Color(Color.Black, _fadeAlph));
-            }
-            spriteBatch.End();
+        _player.Draw(spriteBatch, _player.Position);
+
+        foreach (var platform in _platforms)
+        {
+            spriteBatch.Draw(_platformTexture, platform, Color.Purple);
+        }
+
+        if (GameMode == GameMode.FADE_OUT || GameMode == GameMode.FADE_IN || GameMode == GameMode.CUTSCENE)
+        {
+            spriteBatch.Draw(_fadeTexture, _fadeRectangle, new Color(Color.Black, _fadeAlpha));
+        }
+
+        spriteBatch.End();
     }
 }
