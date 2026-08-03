@@ -119,6 +119,11 @@ public class Scene
         }
     }
 
+    public void Restart(Camera camera)
+    {
+        RespawnPlayer(camera);
+    }
+
     private void UpdatePlaying(Camera camera, double deltaTime)
     {
         _player.Update(deltaTime);
