@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 namespace DontLikePoetry;
 
@@ -51,8 +50,7 @@ public class Player
 
     public PlayerState State { get; private set; } = PlayerState.Idle;
 
-    private KeyboardState _previousKeyboardState;
-    private int _lastHorizontalKeyPressed = 0;
+    private readonly PlayerInput _input = new PlayerInput();
 
     private Texture2D _texture;
     private Color[] _color;
@@ -92,55 +90,31 @@ public class Player
 
     public void Update(double deltaTime)
     {
-        var keyboardState = Keyboard.GetState();
-        int horizontalInput = ReadHorizontalInput(keyboardState);
+        _input.Update();
+        int horizontalInput = _input.Horizontal;
 
         UpdateCoyoteTimer(deltaTime);
-        UpdateJumpBufferTimer(keyboardState, deltaTime);
+        UpdateJumpBufferTimer(deltaTime);
 
         if (horizontalInput != 0)
             _direction = horizontalInput > 0 ? Direction.Rigth : Direction.Left;
 
-        UpdateState(keyboardState, horizontalInput);
+        UpdateState(horizontalInput);
 
         if (State == PlayerState.Dashing)
             UpdateDash(deltaTime);
         else
-            ApplyNormalMovement(keyboardState, horizontalInput, deltaTime);
-
-        _previousKeyboardState = keyboardState;
+            ApplyNormalMovement(horizontalInput, deltaTime);
     }
 
-    private int ReadHorizontalInput(KeyboardState state)
-    {
-        bool dDown = state.IsKeyDown(Keys.D);
-        bool aDown = state.IsKeyDown(Keys.A);
-        bool dWasDown = _previousKeyboardState.IsKeyDown(Keys.D);
-        bool aWasDown = _previousKeyboardState.IsKeyDown(Keys.A);
-
-        if (dDown && !dWasDown)
-            _lastHorizontalKeyPressed = 1;
-        if (aDown && !aWasDown)
-            _lastHorizontalKeyPressed = -1;
-
-        if (dDown && aDown)
-            return _lastHorizontalKeyPressed;
-        if (dDown)
-            return 1;
-        if (aDown)
-            return -1;
-
-        return 0;
-    }
-
-    private void UpdateState(KeyboardState state, int horizontalInput)
+    private void UpdateState(int horizontalInput)
     {
         if (State == PlayerState.Dashing)
             return;
 
-        if (CanDash && DashWasPressed(state))
+        if (CanDash && _input.DashWasPressed)
         {
-            StartDash(state, horizontalInput);
+            StartDash(horizontalInput);
             return;
         }
 
@@ -177,9 +151,9 @@ public class Player
         return _isGrounded || _coyoteTimer > 0;
     }
 
-    private void UpdateJumpBufferTimer(KeyboardState state, double deltaTime)
+    private void UpdateJumpBufferTimer(double deltaTime)
     {
-        if (JumpWasPressed(state))
+        if (_input.JumpWasPressed)
         {
             _jumpBufferTimer = _jumpBufferTime;
         }
@@ -203,10 +177,10 @@ public class Player
         State = PlayerState.Jumping;
     }
 
-    private void StartDash(KeyboardState state, int horizontalInput)
+    private void StartDash(int horizontalInput)
     {
         int dashHorizontalInput = horizontalInput;
-        int dashVerticalInput = ReadVerticalInput(state);
+        int dashVerticalInput = _input.Vertical;
 
         Vector2 direction = new Vector2(dashHorizontalInput, dashVerticalInput);
 
@@ -219,29 +193,6 @@ public class Player
         _dashTimer = _dashDuration;
         State = PlayerState.Dashing;
         CanDash = false;
-    }
-
-    private int ReadVerticalInput(KeyboardState state)
-    {
-        bool wDown = state.IsKeyDown(Keys.W);
-        bool sDown = state.IsKeyDown(Keys.S);
-
-        if (wDown && !sDown)
-            return -1;
-        if (sDown && !wDown)
-            return 1;
-
-        return 0;
-    }
-
-    private bool JumpWasPressed(KeyboardState state)
-    {
-        return state.IsKeyDown(Keys.Space) && _previousKeyboardState.IsKeyUp(Keys.Space);
-    }
-
-    private bool DashWasPressed(KeyboardState state)
-    {
-        return state.IsKeyDown(Keys.LeftShift) && _previousKeyboardState.IsKeyUp(Keys.LeftShift);
     }
 
     private void UpdateDash(double deltaTime)
@@ -268,7 +219,7 @@ public class Player
         _velocity = _velocity * 0.5f;
     }
 
-    private void ApplyNormalMovement(KeyboardState state, int horizontalInput, double deltaTime)
+    private void ApplyNormalMovement(int horizontalInput, double deltaTime)
     {
         float targetVelocityX = horizontalInput * _maxVelocity.X;
 
@@ -284,7 +235,7 @@ public class Player
         if (!_isGrounded)
             velY -= _gravity * deltaTime;
 
-        if (state.IsKeyUp(Keys.Space) && velY < 0)
+        if (!_input.IsJumpHeld && velY < 0)
             velY *= 0.85f;
 
         _velocity = new Vector2((float)velX, (float)velY);
