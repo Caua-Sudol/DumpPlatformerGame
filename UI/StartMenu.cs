@@ -4,20 +4,22 @@ using Microsoft.Xna.Framework.Input;
 
 namespace DontLikePoetry;
 
-public enum Option
+public enum StartMenuOption
 {
     START = 1, 
     EXIT = 2,
     NONE = 0
 }
+
 public class StartMenu
 {
-    private const string startS = "Start";
-    private const string exitS = "Exit";
-    private SpriteFont _font;
-    private Vector2 _fontPositionStart;
-    private Vector2 _fontPositionExit;
-    private Option _currentOption = Option.NONE;
+    private const string StartText = "Start";
+    private const string ExitText = "Exit";
+
+    private readonly SpriteFont _font;
+    private readonly Vector2 _fontPositionStart;
+    private readonly Vector2 _fontPositionExit;
+    private StartMenuOption _currentOption = StartMenuOption.NONE;
 
     public StartMenu(SpriteFont font, Vector2 fontPositionStart, Vector2 fontPositionExit)
     {
@@ -26,39 +28,36 @@ public class StartMenu
         _fontPositionExit = fontPositionExit;
     }
 
-    public Option Update()
+    public StartMenuOption Update(KeyboardState keyboardState)
     {
-        // movimento de teclado muda a opção selecionada trocando o "currentOption
-        var state = Keyboard.GetState();
-
-        if (state.IsKeyDown(Keys.W))
+        if (keyboardState.IsKeyDown(Keys.W))
         {
-            _currentOption = Option.START;
+            _currentOption = StartMenuOption.START;
         }
-        if (state.IsKeyDown(Keys.S))
+        if (keyboardState.IsKeyDown(Keys.S))
         {
-            _currentOption = Option.EXIT;
+            _currentOption = StartMenuOption.EXIT;
         }
-        if (state.IsKeyDown(Keys.Enter))
+        if (keyboardState.IsKeyDown(Keys.Enter))
         {
             return _currentOption;
         }
 
-        return Option.NONE;
+        return StartMenuOption.NONE;
     }
 
     public void Draw(SpriteBatch spriteBatch)
     {
         spriteBatch.Begin();
-        if(_currentOption == Option.START)
+        if(_currentOption == StartMenuOption.START)
         {
-            spriteBatch.DrawString(_font, startS, _fontPositionStart, Color.Yellow);
-            spriteBatch.DrawString(_font, exitS, _fontPositionExit, Color.White);
+            spriteBatch.DrawString(_font, StartText, _fontPositionStart, Color.Yellow);
+            spriteBatch.DrawString(_font, ExitText, _fontPositionExit, Color.White);
         }
         else
         {
-            spriteBatch.DrawString(_font, startS, _fontPositionStart, Color.White);
-            spriteBatch.DrawString(_font, exitS, _fontPositionExit, Color.Yellow);
+            spriteBatch.DrawString(_font, StartText, _fontPositionStart, Color.White);
+            spriteBatch.DrawString(_font, ExitText, _fontPositionExit, Color.Yellow);
         }
         spriteBatch.End();
     }

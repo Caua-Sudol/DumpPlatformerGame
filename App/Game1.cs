@@ -77,7 +77,7 @@ public class Game1 : Game
         }
         if(_activeScreen == AppScreen.START_MENU)
         {
-            UpdateStartMenu();
+            UpdateStartMenu(keyboardState);
         }
 
         _previousKeyboardState = keyboardState;
@@ -103,16 +103,16 @@ public class Game1 : Game
         base.Draw(gameTime);
     }
 
-    private void UpdateStartMenu()
+    private void UpdateStartMenu(KeyboardState keyboardState)
     {
-        Option selectedOption = _startMenu.Update();
+        StartMenuOption selectedOption = _startMenu.Update(keyboardState);
         
-        if(selectedOption == Option.START)
+        if(selectedOption == StartMenuOption.START)
         {
             _activeScreen = AppScreen.PLAYING;
             _overlayState = OverlayState.NONE;
         }
-        else if(selectedOption == Option.EXIT)
+        else if(selectedOption == StartMenuOption.EXIT)
         {
             Exit();
         }
