@@ -244,6 +244,11 @@ public class Scene
         DrawScreenEffects(spriteBatch);
     }
 
+    public void DrawDebug(SpriteBatch spriteBatch, Camera camera, DebugView debugView)
+    {
+        debugView.DrawWorld(spriteBatch, camera, _player, _map.Platforms, _map.CutsceneTriggers, _checkpoint);
+    }
+
     private void DrawWorld(SpriteBatch spriteBatch, Camera camera)
     {
         var cameraTransform = camera.GetTransform();

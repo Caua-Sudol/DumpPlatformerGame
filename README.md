@@ -12,13 +12,14 @@ Ele e um dump inicial: a intencao e copiar a estrutura e evoluir cada jogo sem p
 - `LeftShift`: dash.
 - `Escape`: abrir ou fechar o pause.
 - `Enter`: confirmar uma opcao de menu.
+- `F3`: ativar ou desativar o debug visual.
 
 ## Estrutura
 
 | Pasta | Responsabilidade |
 | --- | --- |
 | `App` | Loop principal, tela ativa e overlays. |
-| `Core` | Camera reutilizavel. |
+| `Core` | Camera e debug visual reutilizaveis. |
 | `Gameplay` | Player, leitura de input e colisao do player. |
 | `Scenes` | Fluxo da fase: jogo, fade, cutscene, respawn e camera. |
 | `UI` | Menus de inicio, pause e morte. |
@@ -41,6 +42,15 @@ O TMX precisa manter estas object layers:
 - `triggerColision`: retangulos que iniciam a cutscene de exemplo.
 
 As medidas atuais de movimento e uma regua para desenhar no Tiled estao em [docs/metricas_mov.md](docs/metricas_mov.md).
+
+## Debug visual
+
+Com `F3` ativo, o jogo mostra dados do mundo sem abrir console ou imprimir varios textos:
+
+- contorno verde das plataformas;
+- trigger da cutscene em vermelho;
+- checkpoint em magenta e alvo da camera em ciano;
+- hitbox do player em verde no chao, amarelo no ar e laranja durante o dash.
 
 ## Pontos especificos do exemplo
 

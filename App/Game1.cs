@@ -16,6 +16,7 @@ public class Game1 : Game
     private SpriteBatch _spriteBatch;
     private RenderTarget2D _gameRenderTarget;
     private Camera _camera;
+    private DebugView _debugView;
     private Scene _scene;
     private StartMenu _startMenu;
     private PauseMenu _pauseMenu;
@@ -42,6 +43,7 @@ public class Game1 : Game
     protected override void Initialize()
     { 
         _scene = new Scene();
+        _debugView = new DebugView();
 
         SpriteFont font = Content.Load<SpriteFont>("font");
         Vector2 menuCenter = new Vector2(LogicalWidth / 2, LogicalHeight / 2);
@@ -62,6 +64,7 @@ public class Game1 : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _gameRenderTarget = new RenderTarget2D(GraphicsDevice, LogicalWidth, LogicalHeight);
+        _debugView.LoadContent(GraphicsDevice);
         _scene.LoadContent(GraphicsDevice);
 
         TargetElapsedTime = TimeSpan.FromSeconds(SecondsPerFrameMenu);
@@ -71,6 +74,11 @@ public class Game1 : Game
     {
         double deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         var keyboardState = Keyboard.GetState();
+
+        if (KeyWasPressed(keyboardState, Keys.F3))
+        {
+            _debugView.Toggle();
+        }
 
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             Exit();
@@ -274,6 +282,7 @@ public class Game1 : Game
     private void DrawPlaying()
     {
         _scene.Draw(_spriteBatch, _camera);
+        _scene.DrawDebug(_spriteBatch, _camera, _debugView);
 
         if (_overlayState == OverlayState.PAUSED)
         {

@@ -83,6 +83,11 @@ public class Player
         get { return _velocity; }
     }
 
+    public bool IsGrounded
+    {
+        get { return _isGrounded; }
+    }
+
     public Rectangle HitBox
     {
         get { return new Rectangle((int)_player.X, (int)_player.Y, _widthPlayer, _heightPlayer); }

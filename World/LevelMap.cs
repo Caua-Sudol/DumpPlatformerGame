@@ -25,6 +25,14 @@ public class LevelMap
         }
     }
 
+    public IEnumerable<Rectangle> CutsceneTriggers
+    {
+        get
+        {
+            return _cutsceneTriggers;
+        }
+    }
+
     public LevelMap(string mapPath)
     {
         _mapPath = mapPath;
