@@ -6,6 +6,7 @@ namespace DontLikePoetry;
 
 public class Scene
 {
+    private const string DefaultMapPath = "Content/SimpleCutsceneMap.tmx";
     private const int DefaultPlayerStartX = 10;
     private const int DefaultPlayerStartY = 552;
     private const int PlayerWidth = 16;
@@ -36,7 +37,7 @@ public class Scene
     private readonly Vector2 _playerStart;
 
     public SceneMode SceneMode { get; private set; }
-    public double FPS { get; private set; }
+    public double SecondsPerFrame { get; private set; }
     public bool PlayerIsDead
     {
         get
@@ -46,7 +47,7 @@ public class Scene
     }
 
     public Scene()
-        : this("Content/SimpleCutsceneMap.tmx", new Vector2(DefaultPlayerStartX, DefaultPlayerStartY))
+        : this(DefaultMapPath, new Vector2(DefaultPlayerStartX, DefaultPlayerStartY))
     {
     }
 
@@ -81,7 +82,7 @@ public class Scene
         _map.LoadContent(graphicsDevice);
 
         SceneMode = SceneMode.PLAYING;
-        FPS = SecondsPerFramePlaying;
+        SecondsPerFrame = SecondsPerFramePlaying;
     }
 
     public void Update(Camera camera, double deltaTime)
@@ -160,7 +161,7 @@ public class Scene
         _player.RestoreDash();
 
         _fadeAlpha = 0.0f;
-        FPS = SecondsPerFramePlaying;
+        SecondsPerFrame = SecondsPerFramePlaying;
         SceneMode = SceneMode.PLAYING;
 
         UpdatePlayingCamera(camera);
@@ -168,7 +169,7 @@ public class Scene
 
     private void StartFadeOut()
     {
-        FPS = SecondsPerFrameCutscene;
+        SecondsPerFrame = SecondsPerFrameCutscene;
         SceneMode = SceneMode.FADE_OUT;
     }
 
@@ -231,7 +232,7 @@ public class Scene
     private void FinishCutscene(Camera camera)
     {
         SceneMode = SceneMode.PLAYING;
-        FPS = SecondsPerFramePlaying;
+        SecondsPerFrame = SecondsPerFramePlaying;
         camera.Zoom = 1.0f;
         _fadeAlpha = 0.0f;
         _player.Move((int)_playerStart.X, (int)_playerStart.Y);

@@ -9,7 +9,7 @@ public enum Direction
 {
     Top = 1,
     Down = 2,
-    Rigth = 3,
+    Right = 3,
     Left = 4
 }
 
@@ -29,10 +29,10 @@ public class Player
     private int _heightPlayer;
 
     private Vector2 _velocity;
-    public Vector2 _maxVelocity { get; private set; }
-    public double _gravity { get; private set; }
-    public bool _isGrounded { get; private set; } = false;
-    public Direction _direction { get; private set; } = Direction.Rigth;
+    private readonly Vector2 _maxVelocity;
+    private readonly double _gravity;
+    private bool _isGrounded;
+    private Direction _direction = Direction.Right;
 
     private float _groundAcceleration = 3300f;
     private float _groundDeceleration = 3300f;
@@ -97,7 +97,7 @@ public class Player
         UpdateJumpBufferTimer(deltaTime);
 
         if (horizontalInput != 0)
-            _direction = horizontalInput > 0 ? Direction.Rigth : Direction.Left;
+            _direction = horizontalInput > 0 ? Direction.Right : Direction.Left;
 
         UpdateState(horizontalInput);
 
@@ -185,7 +185,7 @@ public class Player
         Vector2 direction = new Vector2(dashHorizontalInput, dashVerticalInput);
 
         if (direction == Vector2.Zero)
-            direction = new Vector2(_direction == Direction.Rigth ? 1 : -1, 0);
+            direction = new Vector2(_direction == Direction.Right ? 1 : -1, 0);
 
         direction.Normalize();
 

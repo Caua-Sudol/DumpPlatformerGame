@@ -9,13 +9,15 @@ namespace DontLikePoetry;
 public class LevelMap
 {
     private const int TileSize = 32;
+    private const string PlatformLayerName = "mapaGeral";
+    private const string CutsceneTriggerLayerName = "triggerColision";
 
     private readonly string _mapPath;
     private readonly List<Rectangle> _platforms = new List<Rectangle>();
     private readonly List<Rectangle> _cutsceneTriggers = new List<Rectangle>();
     private Texture2D _platformTexture;
 
-    public List<Rectangle> Platforms
+    public IEnumerable<Rectangle> Platforms
     {
         get
         {
@@ -57,14 +59,17 @@ public class LevelMap
 
     private void LoadObjects()
     {
+        _platforms.Clear();
+        _cutsceneTriggers.Clear();
+
         var map = new TmxMap(_mapPath);
 
-        foreach (var row in map.ObjectGroups["mapaGeral"].Objects)
+        foreach (var row in map.ObjectGroups[PlatformLayerName].Objects)
         {
             _platforms.Add(new Rectangle((int)row.X, (int)row.Y, (int)row.Width, (int)row.Height));
         }
 
-        foreach (var row in map.ObjectGroups["triggerColision"].Objects)
+        foreach (var row in map.ObjectGroups[CutsceneTriggerLayerName].Objects)
         {
             _cutsceneTriggers.Add(new Rectangle((int)row.X, (int)row.Y, (int)row.Width, (int)row.Height));
         }

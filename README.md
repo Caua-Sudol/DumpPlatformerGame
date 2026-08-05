@@ -1,35 +1,61 @@
 # SimpleCutScene
 
-Protótipo em MonoGame para entender como implementar um sistema de cutscene: uma máquina de estados simples que interrompe o controle do jogador, roda uma sequência de câmera e movimento, e depois devolve o controle.
+Base de estudo em MonoGame para jogos de plataforma 2D. O projeto tem movimento, pulo com coyote time e jump buffer, dash em oito direcoes, colisao simples, camera, cutscene, checkpoint, pause e menu de morte.
 
-Projeto ainda em andamento, feito para estudar o problema antes de aplicá-lo em algo maior.
+Ele e um dump inicial: a intencao e copiar a estrutura e evoluir cada jogo sem precisar reconstruir a base de movimento.
 
-## Sobre o projeto
+## Controles
 
-O jogador controla um personagem numa cena simples com uma porta e um chão. Ao encostar na porta, a cena troca do modo `PLAYING` para `CUTSCENE`: a tela escurece com um fade, o jogador é reposicionado, a câmera aproxima com zoom, e o personagem anda sozinho até um ponto fixo antes da cena voltar ao normal.
-
-Estados da cena (`GameMode`):
-
-- `PLAYING`: controle normal do jogador.
-- `CUTSCENE`: sequência automática, sem input do jogador.
+- `A` e `D`: mover.
+- `W` e `S`: escolher direcao vertical do dash e navegar nos menus.
+- `Space`: pular.
+- `LeftShift`: dash.
+- `Escape`: abrir ou fechar o pause.
+- `Enter`: confirmar uma opcao de menu.
 
 ## Estrutura
 
-- `Game1.cs`: ponto de entrada, câmera e loop principal.
-- `Scene.cs`: máquina de estados da cutscene, controle de fade e transição entre `PLAYING` e `CUTSCENE`.
-- `Player.cs`: posição, movimento e colisão do jogador.
-- `Door.cs` / `Floor.cs`: elementos estáticos da cena que definem o gatilho da cutscene.
-- `Camera.cs`: posição, zoom e matriz de transformação da câmera.
+| Pasta | Responsabilidade |
+| --- | --- |
+| `App` | Loop principal, tela ativa e overlays. |
+| `Core` | Camera reutilizavel. |
+| `Gameplay` | Player, leitura de input e colisao do player. |
+| `Scenes` | Fluxo da fase: jogo, fade, cutscene, respawn e camera. |
+| `UI` | Menus de inicio, pause e morte. |
+| `World` | Dados do TMX, plataformas e triggers. |
+| `docs` | Metricas de movimento e guias do template. |
 
-## Status atual
+`Game1` decide qual tela esta ativa. `Scene` coordena a fase, mas nao interpreta o TMX nem resolve a colisao diretamente. `LevelMap` le os objetos do mapa e `PlayerCollision` aplica a colisao contra as plataformas.
 
-Em andamento. O ponto que está sendo testado agora é o ciclo de fade entre os modos: em determinadas condições ele trava numa etapa intermediária e não retorna corretamente para `PLAYING`. É o próximo problema a resolver antes de tentar sequências mais longas de câmera e movimento.
+## Criar uma fase
 
-## Como executar
+O construtor de `Scene` aceita o caminho do TMX e o spawn inicial:
+
+```csharp
+new Scene("Content/MinhaFase.tmx", new Vector2(32, 544));
+```
+
+O TMX precisa manter estas object layers:
+
+- `mapaGeral`: retangulos solidos usados pela colisao e pelo desenho de teste.
+- `triggerColision`: retangulos que iniciam a cutscene de exemplo.
+
+As medidas atuais de movimento e uma regua para desenhar no Tiled estao em [docs/metricas_mov.md](docs/metricas_mov.md).
+
+## Pontos especificos do exemplo
+
+O mapa padrao, spawn e valores da cutscene atual existem apenas para demonstrar o fluxo. Ao criar outro jogo, ajuste primeiro o caminho do TMX e o spawn; depois revise os valores da cutscene em `Scene` conforme a fase nova.
+
+## Limites atuais
+
+- A resolucao logica ainda esta fixa em `1920x1080`.
+- A responsividade de janela e a escala para notebooks ainda precisam de um ajuste proprio.
+- A cutscene atual e unica e usa uma trigger simples.
+- Nao existe sistema de vida ou dano, apenas menu de morte por queda.
+
+## Executar
 
 ```bash
 dotnet restore
 dotnet run
 ```
-
-Controles: `WASD` para mover o jogador, `Esc` para sair. Encoste na porta para acionar a cutscene.

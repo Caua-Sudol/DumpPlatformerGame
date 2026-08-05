@@ -7,12 +7,12 @@ namespace DontLikePoetry;
 
 public class Game1 : Game
 {
+    private const int WindowWidth = 1920;
+    private const int WindowHeight = 1080;
     private const double SecondsPerFrameMenu = 1.0 / 60.0;
 
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
-    private int windowWidth = 1920;
-    private int windowHeight = 1080;
     private Camera _camera;
     private Scene _scene;
     private StartMenu _startMenu;
@@ -22,14 +22,11 @@ public class Game1 : Game
     private OverlayState _overlayState = OverlayState.NONE;
     private KeyboardState _previousKeyboardState;
 
-    private Vector2 positionCamera;
-    private Vector2 dimentionsCamera;
-
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
-        _graphics.PreferredBackBufferWidth = windowWidth;
-        _graphics.PreferredBackBufferHeight = windowHeight;
+        _graphics.PreferredBackBufferWidth = WindowWidth;
+        _graphics.PreferredBackBufferHeight = WindowHeight;
         _graphics.ApplyChanges();
 
         Content.RootDirectory = "Content";
@@ -41,16 +38,16 @@ public class Game1 : Game
         _scene = new Scene();
 
         SpriteFont font = Content.Load<SpriteFont>("font");
-        Vector2 menuPosition = new Vector2(windowWidth / 2, windowHeight / 2);
+        Vector2 menuPosition = new Vector2(WindowWidth / 2, WindowHeight / 2);
 
         _startMenu = new StartMenu(font, menuPosition, menuPosition + new Vector2(0, 20));
         _pauseMenu = new PauseMenu(font, menuPosition);
         _deathMenu = new DeathMenu(font, menuPosition);
 
-        positionCamera = new Vector2((float)windowWidth/2, (float)windowHeight/2);
-        dimentionsCamera = new Vector2((float)windowWidth, (float)windowHeight);
+        Vector2 cameraPosition = new Vector2(WindowWidth / 2, WindowHeight / 2);
+        Vector2 cameraDimensions = new Vector2(WindowWidth, WindowHeight);
 
-        _camera = new Camera(positionCamera, dimentionsCamera, 1.0f);
+        _camera = new Camera(cameraPosition, cameraDimensions, 1.0f);
 
         base.Initialize();
     }
@@ -122,7 +119,7 @@ public class Game1 : Game
     {
         if (_activeScreen == AppScreen.PLAYING && _overlayState == OverlayState.NONE)
         {
-            return _scene.FPS;
+            return _scene.SecondsPerFrame;
         }
 
         return SecondsPerFrameMenu;
