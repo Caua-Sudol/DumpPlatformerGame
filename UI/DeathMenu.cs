@@ -15,17 +15,17 @@ public class DeathMenu
 {
     private const float OptionSpacing = 20.0f;
 
-    private SpriteFont _font;
-    private Vector2 _retryPosition;
-    private Vector2 _quitPosition;
+    private readonly SpriteFont _font;
+    private readonly Vector2 _retryPosition;
+    private readonly Vector2 _quitPosition;
 
     private DeathOption _currentOption = DeathOption.RETRY;
 
-    public DeathMenu(SpriteFont font, Vector2 position)
+    public DeathMenu(SpriteFont font, Vector2 menuCenter)
     {
         _font = font;
-        _retryPosition = position;
-        _quitPosition = position + new Vector2(0, OptionSpacing);
+        _retryPosition = menuCenter - new Vector2(0, OptionSpacing / 2);
+        _quitPosition = menuCenter + new Vector2(0, OptionSpacing / 2);
     }
 
     public void Open()
@@ -52,8 +52,8 @@ public class DeathMenu
     public void Draw(SpriteBatch spriteBatch)
     {
         spriteBatch.Begin();
-        spriteBatch.DrawString(_font, "Retry", _retryPosition, GetOptionColor(DeathOption.RETRY));
-        spriteBatch.DrawString(_font, "Quit", _quitPosition, GetOptionColor(DeathOption.QUIT));
+        DrawOption(spriteBatch, "Retry", _retryPosition, GetOptionColor(DeathOption.RETRY));
+        DrawOption(spriteBatch, "Quit", _quitPosition, GetOptionColor(DeathOption.QUIT));
         spriteBatch.End();
     }
 
@@ -82,5 +82,13 @@ public class DeathMenu
         }
 
         return Color.White;
+    }
+
+    private void DrawOption(SpriteBatch spriteBatch, string text, Vector2 position, Color color)
+    {
+        Vector2 textSize = _font.MeasureString(text);
+        Vector2 textPosition = position - textSize / 2;
+
+        spriteBatch.DrawString(_font, text, textPosition, color);
     }
 }

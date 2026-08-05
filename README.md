@@ -48,8 +48,8 @@ O mapa padrao, spawn e valores da cutscene atual existem apenas para demonstrar 
 
 ## Limites atuais
 
-- A resolucao logica ainda esta fixa em `1920x1080`.
-- A responsividade de janela e a escala para notebooks ainda precisam de um ajuste proprio.
+- O jogo usa `1920x1080` como resolucao logica e escala esse quadro para a janela atual, inclusive ao redimensionar a janela.
+- Telas com outra proporcao podem mostrar barras pretas para preservar as medidas do jogo.
 - A cutscene atual e unica e usa uma trigger simples.
 - Nao existe sistema de vida ou dano, apenas menu de morte por queda.
 

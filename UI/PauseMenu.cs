@@ -16,19 +16,19 @@ public class PauseMenu
 {
     private const float OptionSpacing = 20.0f;
 
-    private SpriteFont _font;
-    private Vector2 _resumePosition;
-    private Vector2 _restartPosition;
-    private Vector2 _quitPosition;
+    private readonly SpriteFont _font;
+    private readonly Vector2 _resumePosition;
+    private readonly Vector2 _restartPosition;
+    private readonly Vector2 _quitPosition;
 
     private PauseOption _currentOption = PauseOption.RESUME;
 
-    public PauseMenu(SpriteFont font, Vector2 position)
+    public PauseMenu(SpriteFont font, Vector2 menuCenter)
     {
         _font = font;
-        _resumePosition = position;
-        _restartPosition = position + new Vector2(0, OptionSpacing);
-        _quitPosition = position + new Vector2(0, OptionSpacing * 2);
+        _resumePosition = menuCenter - new Vector2(0, OptionSpacing);
+        _restartPosition = menuCenter;
+        _quitPosition = menuCenter + new Vector2(0, OptionSpacing);
     }
 
     public void Open()
@@ -58,9 +58,9 @@ public class PauseMenu
     public void Draw(SpriteBatch spriteBatch)
     {
         spriteBatch.Begin();
-        spriteBatch.DrawString(_font, "Resume", _resumePosition, GetOptionColor(PauseOption.RESUME));
-        spriteBatch.DrawString(_font, "Restart", _restartPosition, GetOptionColor(PauseOption.RESTART));
-        spriteBatch.DrawString(_font, "Quit", _quitPosition, GetOptionColor(PauseOption.QUIT));
+        DrawOption(spriteBatch, "Resume", _resumePosition, GetOptionColor(PauseOption.RESUME));
+        DrawOption(spriteBatch, "Restart", _restartPosition, GetOptionColor(PauseOption.RESTART));
+        DrawOption(spriteBatch, "Quit", _quitPosition, GetOptionColor(PauseOption.QUIT));
         spriteBatch.End();
     }
 
@@ -109,5 +109,13 @@ public class PauseMenu
         }
 
         return Color.White;
+    }
+
+    private void DrawOption(SpriteBatch spriteBatch, string text, Vector2 position, Color color)
+    {
+        Vector2 textSize = _font.MeasureString(text);
+        Vector2 textPosition = position - textSize / 2;
+
+        spriteBatch.DrawString(_font, text, textPosition, color);
     }
 }

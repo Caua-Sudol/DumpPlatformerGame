@@ -13,6 +13,7 @@ public enum StartMenuOption
 
 public class StartMenu
 {
+    private const float OptionSpacing = 20.0f;
     private const string StartText = "Start";
     private const string ExitText = "Exit";
 
@@ -21,11 +22,11 @@ public class StartMenu
     private readonly Vector2 _fontPositionExit;
     private StartMenuOption _currentOption = StartMenuOption.NONE;
 
-    public StartMenu(SpriteFont font, Vector2 fontPositionStart, Vector2 fontPositionExit)
+    public StartMenu(SpriteFont font, Vector2 menuCenter)
     {
         _font = font;
-        _fontPositionStart = fontPositionStart;
-        _fontPositionExit = fontPositionExit;
+        _fontPositionStart = menuCenter - new Vector2(0, OptionSpacing / 2);
+        _fontPositionExit = menuCenter + new Vector2(0, OptionSpacing / 2);
     }
 
     public StartMenuOption Update(KeyboardState keyboardState)
@@ -51,14 +52,22 @@ public class StartMenu
         spriteBatch.Begin();
         if(_currentOption == StartMenuOption.START)
         {
-            spriteBatch.DrawString(_font, StartText, _fontPositionStart, Color.Yellow);
-            spriteBatch.DrawString(_font, ExitText, _fontPositionExit, Color.White);
+            DrawOption(spriteBatch, StartText, _fontPositionStart, Color.Yellow);
+            DrawOption(spriteBatch, ExitText, _fontPositionExit, Color.White);
         }
         else
         {
-            spriteBatch.DrawString(_font, StartText, _fontPositionStart, Color.White);
-            spriteBatch.DrawString(_font, ExitText, _fontPositionExit, Color.Yellow);
+            DrawOption(spriteBatch, StartText, _fontPositionStart, Color.White);
+            DrawOption(spriteBatch, ExitText, _fontPositionExit, Color.Yellow);
         }
         spriteBatch.End();
+    }
+
+    private void DrawOption(SpriteBatch spriteBatch, string text, Vector2 position, Color color)
+    {
+        Vector2 textSize = _font.MeasureString(text);
+        Vector2 textPosition = position - textSize / 2;
+
+        spriteBatch.DrawString(_font, text, textPosition, color);
     }
 }
