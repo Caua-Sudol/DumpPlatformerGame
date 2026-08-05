@@ -1,4 +1,4 @@
-# SimpleCutScene
+# DumpPlatformerGame
 
 Base de estudo em MonoGame para jogos de plataforma 2D. O projeto tem movimento, pulo com coyote time e jump buffer, dash em oito direcoes, colisao simples, camera, cutscene, checkpoint, pause e menu de morte.
 
